@@ -1,6 +1,7 @@
 import { Text, StyleSheet, Button, View } from "react-native";
 import React, { useState } from "react";
 import GraficaScreen from "./graficasScreen";
+import RegistroGastosScreen from "./registroGastosScreen";
 
 export default function MenuScreen() {
   const [screen, setScreen] = useState("menu");
@@ -13,8 +14,7 @@ export default function MenuScreen() {
       //screen
       break;
     case "registroGastosScreen":
-      //screen
-      break;
+      return <RegistroGastosScreen/>
     case "graficasScreen":
       return <GraficaScreen/>
     case "EgresosScreen":
