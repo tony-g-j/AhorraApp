@@ -17,17 +17,11 @@ export default function MenuScreen() {
       //screen
       break;
     case "registroGastosScreen":
-      //screen
-      break;
-    case "IngresosScreen":
-      //screen
-      break;
-    case "EgresosScreen":
-      //screen
-      break;
+      return <RegistroGastosScreen/>
+    case "GraficasScreen":
+      return <GraficaScreen/>
     case "PresupuestoScreen":
         return <PresupuestosScreen/>
-      break;
     default:
       return (
         <View style={styles.container}>
@@ -38,20 +32,12 @@ export default function MenuScreen() {
               title="Inicio de sesión"
             />
             <Button
-              onPress={() => setScreen("registroScreen")}
-              title="Registro"
-            />
-            <Button
               onPress={() => setScreen("registroGastosScreen")}
-              title="Registro de gastos"
+              title="Gastos e Ingresos"
             />
             <Button
-              onPress={() => setScreen("IngresosScreen")}
-              title="Ingresos"
-            />
-            <Button
-              onPress={() => setScreen("EgresosScreen")}
-              title="Ingresos"
+              onPress={() => setScreen("GraficasScreen")}
+              title="Graficas"
             />
             <Button
               onPress={() => setScreen("PresupuestoScreen")}
