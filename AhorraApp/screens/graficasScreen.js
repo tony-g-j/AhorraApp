@@ -1,20 +1,21 @@
+// Importación de librerías necesarias
 import React from "react";
 import { View, Text, ScrollView, Dimensions, StyleSheet } from "react-native";
 import { PieChart, LineChart } from "react-native-chart-kit";
 
 const screenWidth = Dimensions.get("window").width;
 
-export default function GraficaScreen() {
+export default function graficaScreen() {
   const ingresosPorCategoria = [
-    { name: "Trabajo", amount: 2500, color: "#4CAF50", legendFontColor: "#333", legendFontSize: 13 },
-    { name: "Ventas", amount: 800, color: "#81C784", legendFontColor: "#333", legendFontSize: 13 },
-    { name: "Regalos", amount: 300, color: "#A5D6A7", legendFontColor: "#333", legendFontSize: 13 },
+    { name: "Salario", amount: 2500, color: "#4CAF50", legendFontColor: "#222", legendFontSize: 16 , legendFontFamily: 'System'},
+    { name: "Ventas", amount: 800, color: "#81C784", legendFontColor: "#222", legendFontSize: 16, legendFontFamily: 'System' },
+    { name: "Ingresos Extra", amount: 300, color: "#A5D6A7", legendFontColor: "#222", legendFontSize: 16, legendFontFamily: 'System' },
   ];
 
   const egresosPorCategoria = [
-    { name: "Comida", amount: 1200, color: "#E53935", legendFontColor: "#333", legendFontSize: 13 },
-    { name: "Transporte", amount: 600, color: "#EF5350", legendFontColor: "#333", legendFontSize: 13 },
-    { name: "Ocio", amount: 400, color: "#FF8A80", legendFontColor: "#333", legendFontSize: 13 },
+    { name: "Alimentación", amount: 1200, color: "#E53935", legendFontColor: "#222", legendFontSize: 16, legendFontFamily: 'System' },
+    { name: "Transporte", amount: 600, color: "#EF5350", legendFontColor: "#222", legendFontSize: 16, legendFontFamily: 'System' },
+    { name: "Entretenimiento", amount: 400, color: "#FF8A80", legendFontColor: "#222", legendFontSize: 16, legendFontFamily: 'System' },
   ];
 
   const dataMensual = {
@@ -35,44 +36,65 @@ export default function GraficaScreen() {
   };
 
   const chartConfig = {
-    backgroundColor: "#fff",
-    backgroundGradientFrom: "#f8f9fa",
-    backgroundGradientTo: "#f8f9fa",
-    color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`,
+    backgroundColor: "#f3fefdff",
+    backgroundGradientFrom: "#ffffff",
+    backgroundGradientTo: "#ffffff",
+    color: (opacity = 1) => 'rgba(0, 0, 0, ' + opacity + ')',
+    decimalPlaces: 0,
+    propsForLabels:{
+      fontFamily:'System',
+      fontWeight:'bold'
+    },
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <Text style={styles.title}>Gráficas Financieras</Text>
+    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+      <View style={styles.content}>
+        <Text style={styles.title}>Resumen Financiero</Text>
 
-      <Text style={styles.subtitle}>Ingresos por Categoría</Text>
-      <PieChart
-        data={ingresosPorCategoria}
-        width={screenWidth - 20}
-        height={200}
-        chartConfig={chartConfig}
-        accessor="amount"
-        backgroundColor="transparent"
-      />
+        <View style={styles.chartContainer}>
+          <Text style={styles.subtitle}>Ingresos por Categoría</Text>
+          <View style={styles.centerChart}>
+            <PieChart
+              data={ingresosPorCategoria}
+              width={screenWidth * 0.85}
+              height={220}
+              chartConfig={chartConfig}
+              accessor="amount"
+              backgroundColor="transparent"
+            />
+          </View>
+        </View>
 
-      <Text style={styles.subtitle}>Egresos por Categoría</Text>
-      <PieChart
-        data={egresosPorCategoria}
-        width={screenWidth - 20}
-        height={200}
-        chartConfig={chartConfig}
-        accessor="amount"
-        backgroundColor="transparent"
-      />
+        <View style={styles.chartContainer}>
+          <Text style={styles.subtitle}>Egresos por Categoría</Text>
+          <View style={styles.centerChart}>
+            <PieChart
+              data={egresosPorCategoria}
+              width={screenWidth * 0.85}
+              height={220}
+              chartConfig={chartConfig}
+              accessor="amount"
+              backgroundColor="transparent"
+            />
+          </View>
+        </View>
 
-      <Text style={styles.subtitle}>Ingresos vs Egresos por Mes</Text>
-      <LineChart
-        data={dataMensual}
-        width={screenWidth - 20}
-        height={250}
-        chartConfig={chartConfig}
-        bezier
-      />
+        <View style={styles.chartContainer}>
+          <Text style={styles.subtitle}>Tendencia Mensual de Ingresos y Egresos</Text>
+          <View style={styles.centerChart}>
+            <LineChart
+              data={dataMensual}
+              width={screenWidth * 0.75}
+              height={260}
+              chartConfig={chartConfig}
+              bezier
+              style={{ borderRadius: 12,
+              }}
+            />
+          </View>
+        </View>
+      </View>
     </ScrollView>
   );
 }
@@ -80,20 +102,42 @@ export default function GraficaScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F5F5F5",
+    backgroundColor: "#bff0ea",
     padding: 10,
   },
+  content: {
+    alignItems: "center",
+  },
   title: {
-    fontSize: 22,
-    fontWeight: "bold",
+    fontSize: 26,
+    fontWeight: "700",
     textAlign: "center",
-    marginVertical: 15,
-    color: "#222",
+    marginVertical: 20,
+    color: "#1a1a1a",
+    letterSpacing: 0.5,
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: "600",
-    marginVertical: 10,
-    color: "#333",
+    marginBottom: 10,
+    color: "#2c3e50",
+    textAlign: "center",
+  },
+  chartContainer: {
+    backgroundColor: "#ffffff",
+    borderRadius: 16,
+    padding: 18,
+    width: "85%",  
+    alignItems: "center", 
+    marginVertical: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 6,
+    elevation: 5,
+  },
+  centerChart: {
+    alignItems: "center",
+    justifyContent: "center",
   },
 });
