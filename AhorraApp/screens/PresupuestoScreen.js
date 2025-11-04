@@ -6,7 +6,7 @@ const COLORS = {
   success: '#76C75F', 
   danger: '#FF6B6B', 
   textDark: '#333333',
-  background: '#FFFFFF',
+  background: '#bff0ea',
   cardBackground: '#F8F8F8', 
 };
 
@@ -34,7 +34,7 @@ export default function PresupuestosScreen() {
           <TextInput
             style={styles.budgetInput}
             onChangeText={setPresupuestoMensual}
-            value={`$${presupuestoMensual}`}
+            value={presupuestoMensual ? `$${presupuestoMensual}` : ''}
             keyboardType="numeric"
           />
           <View style={styles.summaryRow}>
