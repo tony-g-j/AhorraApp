@@ -288,7 +288,7 @@ export default function PresupuestosScreen() {
                         
                         <TouchableHighlight 
                             style={sheetStyles.THBtn}
-                            underlayColor={'#ECFDF5'}
+                            underlayColor={'#e3fdf1ff'}
                             onPress={handleOpenAddSheet}
                         >
                             <Text style={sheetStyles.BtnTxt}>Añadir Nueva Categoría</Text>
