@@ -32,25 +32,11 @@ const initialCategories = [
     { id: 3, name: 'Entretenimiento', limit: 1000, spent: 500, icon: 'game-controller' },
 ];
 
-const CategoryFormSheet = ({ 
-    bottomSheetRef, 
-    onSave, 
-    isEditing, 
-    categoryToEdit, 
-    snapPoints 
-}) => {
-    const [name, setName] = useState('');
-    const [limit, setLimit] = useState('');
+export default function PresupuestosScreen() {
+  const [presupuestoMensual, setPresupuestoMensual] = useState(initialBudget.toString());
 
-    useEffect(() => {
-        if (isEditing && categoryToEdit) {
-            setName(categoryToEdit.name);
-            setLimit(categoryToEdit.limit.toString());
-        } else {
-            setName('');
-            setLimit('');
-        }
-    }, [isEditing, categoryToEdit]);
+  const totalSpent = categories.reduce((acc, cat) => acc + cat.spent, 0);
+  const remainingBudget = initialBudget - totalSpent;
 
     const handleSave = () => {
         const limitNum = parseFloat(limit);
@@ -58,6 +44,23 @@ const CategoryFormSheet = ({
             Alert.alert("Error", "Por favor, ingresa un nombre y un límite válido.");
             return;
         }
+
+        <Text style={styles.sectionHeader}>Límites por Categoría</Text>
+        {categories.map((item) => {
+          const percentSpent = (item.spent / item.limit) * 100;
+          const isOverBudget = item.spent > item.limit;
+
+          return (
+            <View key={item.id} style={styles.categoryItem}>
+              <View style={styles.categoryHeader}>
+                <Text style={styles.iconPlaceholder}>ICON</Text>
+                <Text style={styles.categoryName}>{item.name}</Text>
+              </View>
+              
+              <View style={styles.limitDetails}>
+                <Text style={styles.limitText}>Límite: ${item.limit.toFixed(2)}</Text>
+                <Text style={[styles.spentText, { color: isOverBudget ? COLORS.danger : COLORS.textDark }]}>
+                  Gastado: ${item.spent.toFixed(2)}
 
         onSave({ 
             id: isEditing ? categoryToEdit.id : Date.now(),
