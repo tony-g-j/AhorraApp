@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { 
-  View, Text, StyleSheet, TextInput, Button, Image, ScrollView, Switch, ActivityIndicator, Alert } from 'react-native';
-import Logo from '../assets/logo.png'; // tu logo local
+import { View, Text, StyleSheet, TextInput, Button, Image, ScrollView, Switch, ActivityIndicator, Alert } from 'react-native';
+import Logo from '../assets/logo.png'; 
 
 export default function InicioSesionScreen() {
   const [pantalla, setPantalla] = useState('splash');
@@ -17,8 +16,13 @@ export default function InicioSesionScreen() {
   return (
     <View style={styles.appContainer}>
       {pantalla === 'splash' && <SplashScreen />}
-      {pantalla === 'login' && <LoginScreen onRegister={() => setPantalla('register')} />}
+      {pantalla === 'login' && 
+      <LoginScreen
+       onRegister={() => setPantalla('register')} 
+       onForgot={() => setPantalla('forgot')}/>}
+
       {pantalla === 'register' && <RegisterScreen onLogin={() => setPantalla('login')} />}
+      {pantalla === 'forgot' && (<ForgotPasswordScreen onBack={() => setPantalla('login')}/> )}
     </View>
   );
 }
@@ -36,7 +40,7 @@ function SplashScreen() {
   );
 }
 
-function LoginScreen({ onRegister }) {
+function LoginScreen({ onRegister, onForgot }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
@@ -95,7 +99,11 @@ function LoginScreen({ onRegister }) {
           <Button title="Iniciar Sesión" onPress={handleLogin} />
         </View>
 
-        <Text style={{ color: '#000', marginTop: 10 }}>- Olvidé mi contraseña -</Text>
+        <Text style={{ color: '#0d9df0ff', marginTop: 10, textDecorationLine: 'underline' }}
+           onPress={onForgot}
+        >
+           Olvidé mi contraseña 
+        </Text>
 
         <View style={{ marginTop: 20 }}>
           <Button title="Ir a Registro" onPress={onRegister} />
@@ -176,6 +184,50 @@ function RegisterScreen({ onLogin }) {
 
         <View style={{ marginTop: 15 }}>
           <Button title="Volver a inicio de sesión" onPress={onLogin} />
+        </View>
+      </ScrollView>
+    </View>
+  );
+}
+function ForgotPasswordScreen({ onBack }) {
+  const [correo, setCorreo] = useState('');
+
+  const validarCorreo = (correo) => /^[\w.%+-]+@[\w.-]+\.[A-Za-z]{2,}$/.test(correo);
+
+  const handleRecover = () => {
+    if (!correo.trim()) {
+      Alert.alert('Campo vacío', 'Ingresa tu correo');
+      return;
+    }
+    if (!validarCorreo(correo)) {
+      Alert.alert('Correo inválido', 'Formato incorrecto');
+      return;
+    }
+
+    Alert.alert('Correo enviado', 'Revisa tu correo para restablecer la contraseña');
+  };
+
+  return (
+    <View style={styles.bg}>
+      <ScrollView contentContainerStyle={styles.centerContent}>
+        <Image source={Logo} style={styles.logo} />
+        <Text style={styles.title}>Recuperar contraseña</Text>
+
+        <TextInput
+          style={styles.input}
+          placeholder="Correo electrónico"
+          placeholderTextColor="#999"
+          keyboardType="email-address"
+          value={correo}
+          onChangeText={setCorreo}
+        />
+
+        <View style={styles.btn}>
+          <Button title="Enviar" onPress={handleRecover} />
+        </View>
+
+        <View style={{ marginTop: 15 }}>
+          <Button title="Volver" onPress={onBack} />
         </View>
       </ScrollView>
     </View>
