@@ -1,4 +1,4 @@
-import React, { useRef, useMemo, useState, useCallback } from "react"; // 'Activity' eliminado
+import React, { useRef, useMemo, useState, useCallback } from "react";
 import {
   StyleSheet,
   Text,
@@ -12,6 +12,13 @@ import {
   ScrollView,
 } from "react-native";
 import BottomSheet, { BottomSheetScrollView } from "@gorhom/bottom-sheet";
+import {
+  Menu,
+  MenuOption,
+  MenuOptions,
+  MenuTrigger,
+  renderers,
+} from "react-native-popup-menu";
 
 const GASTOS_INICIALES = [
   { id: "1", descripcion: "Café de la mañana", monto: 45.5 },
@@ -40,32 +47,26 @@ export default function RegistroGastosScreen() {
   const bottomSheetRef = useRef(null);
   const bottomSheetGastosRef = useRef(null);
   const bottomSheetIngresosRef = useRef(null);
-  const bottomSheetOpsRef = useRef(null);
   const bottomSheetModRef = useRef(null);
-  const snapPoints = useMemo(() => ["50%"], []); 
-
+  const snapPoints = useMemo(() => ["50%"], []);
 
   const handleOpenSheet = () => {
-    bottomSheetRef.current?.snapToIndex(0);
+    bottomSheetRef.current?.expand();
   };
-  const handledOpenOpsSheet = (item, tipo) => {
-    setItem({ ...item, tipo: tipo });
-    bottomSheetOpsRef.current?.snapToIndex(0);
-  };
+
   const handledOpenIngresoSheet = () => {
     bottomSheetRef.current.close();
-    bottomSheetIngresosRef.current.snapToIndex(0);
+    bottomSheetIngresosRef.current.expand();
   };
   const handledOpenGastosSheet = () => {
     bottomSheetRef.current.close();
-    bottomSheetGastosRef.current.snapToIndex(0);
+    bottomSheetGastosRef.current.expand();
   };
   const handledOpenModSheet = () => {
     if (!item) return;
     setDescripcionM(item.descripcion);
     setMontoM(item.monto.toString());
-    bottomSheetOpsRef.current?.close();
-    bottomSheetModRef.current?.snapToIndex(0);
+    bottomSheetModRef.current?.expand();
   };
 
   const handleGuardarGasto = useCallback(() => {
@@ -84,18 +85,16 @@ export default function RegistroGastosScreen() {
       monto: montoNum,
     };
 
-
     Keyboard.dismiss();
-    bottomSheetGastosRef.current?.snapToIndex(-1);
-
+    setTimeout(() => bottomSheetGastosRef.current?.close(), 300);
+    
 
     setTimeout(() => {
       setGastos((gastosActuales) => [nuevoGasto, ...gastosActuales]);
 
       setDescripcionG("");
       setMontoG("");
-    }, 300); 
-
+    }, 300);
   }, [descripcionG, montoG]);
 
   const handleGuardarIngreso = useCallback(() => {
@@ -114,7 +113,8 @@ export default function RegistroGastosScreen() {
     };
 
     Keyboard.dismiss();
-    bottomSheetIngresosRef.current?.close();
+    setTimeout(() => bottomSheetIngresosRef.current?.close(), 300)
+    
 
     setTimeout(() => {
       setIngreso((ingreso) => [NIngreso, ...ingreso]);
@@ -134,7 +134,8 @@ export default function RegistroGastosScreen() {
     const { id, tipo } = item;
 
     Keyboard.dismiss();
-    bottomSheetModRef.current?.close();
+    setTimeout(() => {bottomSheetModRef.current?.close()}, 300)
+    
 
     setTimeout(() => {
       if (tipo === "gasto") {
@@ -149,7 +150,11 @@ export default function RegistroGastosScreen() {
         setIngreso((ingresosActuales) =>
           ingresosActuales.map((ingreso) =>
             ingreso.id === id
-              ? { ...ingreso, descripcion: descripcionM.trim(), monto: montoNum }
+              ? {
+                  ...ingreso,
+                  descripcion: descripcionM.trim(),
+                  monto: montoNum,
+                }
               : ingreso
           )
         );
@@ -164,8 +169,6 @@ export default function RegistroGastosScreen() {
     if (!item) return;
     const { id, tipo } = item;
 
-    bottomSheetOpsRef.current?.close();
-
     setTimeout(() => {
       if (tipo === "gasto") {
         setGastos((gastosActuales) =>
@@ -178,16 +181,37 @@ export default function RegistroGastosScreen() {
       }
       setItem(null);
     }, 300);
-  }, [item]); 
-
+  }, [item]);
 
   const renderGasto = ({ item }) => (
     <View style={styles.gastoItem}>
       <Text style={styles.gastoDescripcion}>{item.descripcion}</Text>
       <Text style={styles.gastoMonto}>${item.monto.toFixed(2)}</Text>
-      <TouchableOpacity onPress={() => handledOpenOpsSheet(item, "gasto")}>
-        <Text style={styles.dotsTreeV}>&#x22EE;</Text>
-      </TouchableOpacity>
+      <Menu style={styles.Menu} renderer={renderers.Popover}>
+        <MenuTrigger style={styles.trigger}>
+          <Text style={styles.dotsTreeV}>&#x22EE;</Text>
+        </MenuTrigger>
+        <MenuOptions optionsContainerStyle={styles.MenuOpsContainer}>
+          <MenuOption
+            style={styles.option}
+            onSelect={() => {
+              setItem({ ...item, tipo: "gasto" });
+              handledOpenModSheet();
+            }}
+          >
+            <Text style={styles.opText}> Modificar </Text>
+          </MenuOption>
+          <MenuOption
+            style={styles.option}
+            onSelect={() => {
+              setItem({ ...item, tipo: "gasto" });
+              handleEliminar();
+            }}
+          >
+            <Text style={styles.opText}> Eliminar </Text>
+          </MenuOption>
+        </MenuOptions>
+      </Menu>
     </View>
   );
 
@@ -195,9 +219,31 @@ export default function RegistroGastosScreen() {
     <View style={styles.ingresoItem}>
       <Text style={styles.ingresoDesc}>{item.descripcion}</Text>
       <Text style={styles.ingresoMonto}>${item.monto.toFixed(2)}</Text>
-      <TouchableOpacity onPress={() => handledOpenOpsSheet(item, "ingreso")}>
-        <Text style={styles.dotsTreeV}>&#x22EE;</Text>
-      </TouchableOpacity>
+      <Menu style={styles.Menu}>
+        <MenuTrigger style={styles.trigger}>
+          <Text style={styles.dotsTreeV}>&#x22EE;</Text>
+        </MenuTrigger>
+        <MenuOptions optionsContainerStyle={styles.MenuOpsContainer}>
+          <MenuOption
+            style={styles.option}
+            onSelect={() => {
+              setItem({ ...item, tipo: "ingreso" });
+              handledOpenModSheet();
+            }}
+          >
+            <Text style={styles.opText}> Modificar </Text>
+          </MenuOption>
+          <MenuOption
+            style={styles.option}
+            onSelect={() => {
+              setItem({ ...item, tipo: "ingreso" });
+              handleEliminar();
+            }}
+          >
+            <Text style={styles.opText}> Eliminar </Text>
+          </MenuOption>
+        </MenuOptions>
+      </Menu>
     </View>
   );
 
@@ -237,7 +283,7 @@ export default function RegistroGastosScreen() {
         ref={bottomSheetRef}
         snapPoints={snapPoints}
         enablePanDownToClose={true}
-        index={-1} 
+        index={-1}
         backgroundStyle={styles.bSheet}
       >
         <BottomSheetScrollView
@@ -268,7 +314,7 @@ export default function RegistroGastosScreen() {
         ref={bottomSheetIngresosRef}
         snapPoints={snapPoints}
         enablePanDownToClose={true}
-        index={-1} 
+        index={-1}
         backgroundStyle={styles.bSheet}
       >
         <BottomSheetScrollView
@@ -332,24 +378,6 @@ export default function RegistroGastosScreen() {
 
           <TouchableOpacity style={styles.THBtn} onPress={handleGuardarGasto}>
             <Text style={styles.BtnTxt}>Guardar gasto</Text>
-          </TouchableOpacity>
-        </BottomSheetScrollView>
-      </BottomSheet>
-
-      <BottomSheet
-        ref={bottomSheetOpsRef}
-        snapPoints={snapPoints}
-        enablePanDownToClose={true}
-        index={-1}
-        backgroundStyle={styles.bSheet}
-      >
-        <BottomSheetScrollView contentContainerStyle={styles.bView}>
-          <TouchableOpacity style={styles.THBtn} onPress={handledOpenModSheet}>
-            <Text style={styles.BtnTxt}>Modificar</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity style={styles.THBtn} onPress={handleEliminar}>
-            <Text style={styles.BtnTxt}>Eliminar</Text>
           </TouchableOpacity>
         </BottomSheetScrollView>
       </BottomSheet>
@@ -474,7 +502,6 @@ const styles = StyleSheet.create({
     backgroundColor: "#abbbb5ff",
   },
   bView: {
-    // ¡¡¡AQUÍ ESTÁ LA CONFIRMACIÓN DE QUE NO HAY FLEX: 1!!!
     padding: 20,
     alignItems: "center",
   },
@@ -504,7 +531,7 @@ const styles = StyleSheet.create({
     paddingLeft: 20,
   },
   THBtn: {
-    width: "45%", // Ajustado para que quepan dos
+    width: "45%",
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "#3B82F6",
@@ -516,5 +543,32 @@ const styles = StyleSheet.create({
     fontSize: 20,
     padding: 10,
     color: "#fff",
+  },
+  Menu: {
+    position: "static",
+    top: 10,
+    right: 10,
+    borderRadius: 16,
+  },
+  trigger: {
+    padding: 5,
+  },
+  MenuOpsContainer: {
+    marginTop: 30,
+    borderRadius: 8,
+    padding: 5,
+    backgroundColor:'#9CA3AF'
+  },
+  option: {
+    backgroundColor:'#fff',
+    borderRadius: 8,
+    borderWidth: 1,
+    marginBottom: 5,
+  },
+  opText: {
+    textAlign: "center",
+    fontSize: 16,
+    padding: 8,
+    color: "#333",
   },
 });
