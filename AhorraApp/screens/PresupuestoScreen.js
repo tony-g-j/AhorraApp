@@ -14,14 +14,6 @@ import BottomSheet, { BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 const COLORS = {
-<<<<<<< Updated upstream
-  primary: '#009688', 
-  success: '#76C75F', 
-  danger: '#FF6B6B', 
-  textDark: '#333333',
-  background: '#FFFFFF',
-  cardBackground: '#F8F8F8', 
-=======
     primary: '#009688', 
     success: '#76C75F', 
     danger: '#FF6B6B', 
@@ -31,7 +23,6 @@ const COLORS = {
     lightGrey: '#E0E0E0', 
     primaryDark: '#0B3D3A', 
     blue: '#3B82F6',
->>>>>>> Stashed changes
 };
 
 const initialBudget = 10000.00; 
@@ -61,44 +52,12 @@ const CategoryFormSheet = ({
         }
     }, [isEditing, categoryToEdit]);
 
-<<<<<<< Updated upstream
-  return (
-    <View style={styles.container}>
-      <Text style={styles.header}> Mi Presupuesto Mensual</Text>
-      
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        
-        <View style={styles.budgetCard}>
-          <Text style={styles.cardTitle}>Presupuesto Total Definido:</Text>
-          <TextInput
-            style={styles.budgetInput}
-            onChangeText={setPresupuestoMensual}
-            value={`$${presupuestoMensual}`}
-            keyboardType="numeric"
-          />
-          <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Disponible restante:</Text>
-            <Text 
-                style={[
-                    styles.summaryValue, 
-                    { color: remainingBudget >= 0 ? COLORS.success : COLORS.danger }
-                ]}
-            >
-                {remainingBudget.toFixed(2)}
-            </Text>
-          </View>
-          <Text style={styles.infoText}>
-              Este es tu límite para gastos variables del mes.
-          </Text>
-        </View>
-=======
     const handleSave = () => {
         const limitNum = parseFloat(limit);
         if (!name || isNaN(limitNum) || limitNum < 0) {
             Alert.alert("Error", "Por favor, ingresa un nombre y un límite válido.");
             return;
         }
->>>>>>> Stashed changes
 
         onSave({ 
             id: isEditing ? categoryToEdit.id : Date.now(),
