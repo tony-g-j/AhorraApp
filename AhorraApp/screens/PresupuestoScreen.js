@@ -168,6 +168,11 @@ export default function PresupuestosScreen() {
     bottomSheetCategoryRef.current?.expand();
   }, []);
 
+  const handleDeleteCategory = useCallback((id) => {
+    setCategories((prev) => prev.filter((cat) => cat.id !== id));
+    Alert.alert("Éxito", "Categoría eliminada.");
+  }, []);
+
   const modalOptions = useCallback(
     (item) => {
       Alert.alert(
@@ -223,11 +228,6 @@ export default function PresupuestosScreen() {
     },
     [isEditing]
   );
-
-  const handleDeleteCategory = useCallback((id) => {
-    setCategories((prev) => prev.filter((cat) => cat.id !== id));
-    Alert.alert("Éxito", "Categoría eliminada.");
-  }, []);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
