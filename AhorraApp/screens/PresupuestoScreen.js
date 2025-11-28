@@ -18,6 +18,15 @@ import {
 } from "react-native";
 import BottomSheet, { BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import MaterialIcons from "react-native-vector-icons/MaterialIcons";
+
+import {
+  MenuProvider,
+  Menu,
+  MenuOptions,
+  MenuOption,
+  MenuTrigger,
+} from 'react-native-popup-menu';
 
 
 const COLORS = {
@@ -169,37 +178,25 @@ export default function PresupuestosScreen() {
   }, []);
 
   const handleDeleteCategory = useCallback((id) => {
-    setCategories((prev) => prev.filter((cat) => cat.id !== id));
-    Alert.alert("Éxito", "Categoría eliminada.");
+    Alert.alert(
+      "Confirmar Eliminación",
+      "¿Estás seguro de que quieres eliminar esta categoría? Esta acción no se puede deshacer.",
+      [
+        {
+          text: "Cancelar",
+          style: "cancel",
+        },
+        {
+          text: "Eliminar",
+          style: "destructive",
+          onPress: () => {
+            setCategories((prev) => prev.filter((cat) => cat.id !== id));
+            Alert.alert("Éxito", "Categoría eliminada.");
+          },
+        },
+      ]
+    );
   }, []);
-
-  const modalOptions = useCallback(
-    (item) => {
-      Alert.alert(
-        "Opciones de Categoría",
-        `¿Qué deseas hacer con "${item.name}"?`,
-        [
-          {
-            text: "Eliminar",
-            onPress: () => handleDeleteCategory(item.id),
-            style: "destructive",
-          },
-          {
-            text: "Editar",
-            onPress: () => {
-              handleOpenEditSheet(item);
-            },
-          },
-          {
-            text: "Cancelar",
-            style: "cancel",
-          },
-        ],
-        { cancelable: true }
-      );
-    },
-    [handleOpenEditSheet, handleDeleteCategory]
-  );
 
   const handleSaveCategory = useCallback(
     (newCategoryData) => {
@@ -230,121 +227,148 @@ export default function PresupuestosScreen() {
   );
 
   return (
-    <GestureHandlerRootView style={{ flex: 1 }}>
-      <View style={styles.container}>
-        <Text style={styles.header}>💰 Mi Presupuesto Mensual</Text>
+    <MenuProvider> 
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <View style={styles.container}>
+          <Text style={styles.header}>💰 Mi Presupuesto Mensual</Text>
 
-        <ScrollView contentContainerStyle={styles.scrollContent}>
-          <View style={styles.budgetCard}>
-            <Text style={styles.cardTitle}>Presupuesto Total Definido:</Text>
-            <TextInput
-              style={styles.budgetInput}
-              onChangeText={(text) =>
-                setPresupuestoMensual(text.replace(/[^0-9.]/g, ""))
-              }
-              value={presupuestoMensual ? `$${presupuestoMensual}` : ""}
-              keyboardType="numeric"
-            />
-            <View style={styles.summaryRow}>
-              <Text style={styles.summaryLabel}>Disponible restante:</Text>
-              <Text
-                style={[
-                  styles.summaryValue,
-                  {
-                    color:
-                      remainingBudget >= 0 ? COLORS.success : COLORS.danger,
-                  },
-                ]}
-              >
-                ${remainingBudget.toFixed(2)}
+          <ScrollView contentContainerStyle={styles.scrollContent}>
+            <View style={styles.budgetCard}>
+              <Text style={styles.cardTitle}>Presupuesto Total Definido:</Text>
+              <TextInput
+                style={styles.budgetInput}
+                onChangeText={(text) =>
+                  setPresupuestoMensual(text.replace(/[^0-9.]/g, ""))
+                }
+                value={presupuestoMensual ? `$${presupuestoMensual}` : ""}
+                keyboardType="numeric"
+              />
+              <View style={styles.summaryRow}>
+                <Text style={styles.summaryLabel}>Disponible restante:</Text>
+                <Text
+                  style={[
+                    styles.summaryValue,
+                    {
+                      color:
+                        remainingBudget >= 0 ? COLORS.success : COLORS.danger,
+                    },
+                  ]}
+                >
+                  ${remainingBudget.toFixed(2)}
+                </Text>
+              </View>
+              <Text style={styles.infoText}>
+                Este es tu límite para gastos variables del mes.
               </Text>
             </View>
-            <Text style={styles.infoText}>
-              Este es tu límite para gastos variables del mes.
-            </Text>
-          </View>
 
-          <Text style={styles.sectionHeader}>Límites por Categoría</Text>
-          {categories.map((item) => {
-            const percentSpent = (item.spent / item.limit) * 100;
-            const isOverBudget = item.spent > item.limit;
+            <Text style={styles.sectionHeader}>Límites por Categoría</Text>
+            {categories.map((item) => {
+              const percentSpent = (item.spent / item.limit) * 100;
+              const isOverBudget = item.spent > item.limit;
 
-            return (
-              <TouchableOpacity
-                key={item.id}
-                style={styles.categoryItem}
-                onPress={() => modalOptions(item)}
+              return (
+                <View 
+                  key={item.id} 
+                  style={styles.categoryItem}
+                >
+                  <View style={styles.categoryTitleRow}>
+                    <View style={styles.categoryHeader}>
+                      <Text style={styles.iconPlaceholder}>ICON</Text>
+                      <Text style={styles.categoryName}>{item.name}</Text>
+                    </View>
+                    
+                    <Menu>
+                      <MenuTrigger customStyles={{ triggerWrapper: styles.optionsButton }}>
+                        <MaterialIcons name="more-vert" size={24} color={COLORS.textDark} />
+                      </MenuTrigger>
+                      <MenuOptions customStyles={{ optionsContainer: styles.menuOptionsContainer }}>
+                        
+                        <MenuOption 
+                            onSelect={() => handleOpenEditSheet(item)} 
+                            customStyles={{ optionWrapper: styles.menuOptionWrapper }}
+                        >
+                            <Text style={styles.menuOptionText}>Modificar</Text>
+                        </MenuOption>
+                        
+                        <MenuOption 
+                            onSelect={() => handleDeleteCategory(item.id)}
+                            customStyles={{ optionWrapper: styles.menuOptionWrapper }}
+                        >
+                            <Text style={[styles.menuOptionText, styles.deleteOptionText]}>Eliminar</Text>
+                        </MenuOption>
+                        
+                      </MenuOptions>
+                    </Menu>
+
+                  </View>
+
+                  <View style={styles.limitDetails}>
+                    <Text style={styles.limitText}>
+                      Límite: ${item.limit.toFixed(2)}
+                    </Text>
+                    <Text
+                      style={[
+                        styles.spentText,
+                        { color: isOverBudget ? COLORS.danger : COLORS.textDark },
+                      ]}
+                    >
+                      Gastado: ${item.spent.toFixed(2)}
+                    </Text>
+                  </View>
+
+                  <View style={styles.progressBarBackground}>
+                    <View
+                      style={[
+                        styles.progressBarFill,
+                        {
+                          width: `${Math.min(percentSpent, 100)}%`,
+                          backgroundColor: isOverBudget
+                            ? COLORS.danger
+                            : COLORS.primary,
+                        },
+                      ]}
+                    />
+                  </View>
+                </View>
+              );
+            })}
+          </ScrollView>
+
+          <TouchableOpacity style={styles.fab} onPress={handleOpenSheet}>
+            <Text style={styles.fabTexto}>+</Text>
+          </TouchableOpacity>
+
+          <BottomSheet
+            ref={bottomSheetRef}
+            snapPoints={snapPoints}
+            index={0}
+            enablePanDownToClose={true}
+            backgroundStyle={sheetStyles.bSheet}
+          >
+            <BottomSheetScrollView contentContainerStyle={sheetStyles.bView}>
+              <Text style={sheetStyles.titulo}>Opciones de Presupuesto</Text>
+
+              <TouchableHighlight
+                style={sheetStyles.THBtn}
+                underlayColor={"#ECFDF5"}
+                onPress={handleOpenAddSheet}
               >
-                <View style={styles.categoryHeader}>
-                  <Text style={styles.iconPlaceholder}>ICON</Text>
-                  <Text style={styles.categoryName}>{item.name}</Text>
-                </View>
+                <Text style={sheetStyles.BtnTxt}>Añadir Nueva Categoría</Text>
+              </TouchableHighlight>
+            </BottomSheetScrollView>
+          </BottomSheet>
 
-                <View style={styles.limitDetails}>
-                  <Text style={styles.limitText}>
-                    Límite: ${item.limit.toFixed(2)}
-                  </Text>
-                  <Text
-                    style={[
-                      styles.spentText,
-                      { color: isOverBudget ? COLORS.danger : COLORS.textDark },
-                    ]}
-                  >
-                    Gastado: ${item.spent.toFixed(2)}
-                  </Text>
-                </View>
-
-                <View style={styles.progressBarBackground}>
-                  <View
-                    style={[
-                      styles.progressBarFill,
-                      {
-                        width: `${Math.min(percentSpent, 100)}%`,
-                        backgroundColor: isOverBudget
-                          ? COLORS.danger
-                          : COLORS.primary,
-                      },
-                    ]}
-                  />
-                </View>
-              </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
-
-        <TouchableOpacity style={styles.fab} onPress={handleOpenSheet}>
-          <Text style={styles.fabTexto}>+</Text>
-        </TouchableOpacity>
-
-        <BottomSheet
-          ref={bottomSheetRef}
-          snapPoints={snapPoints}
-          index={0}
-          enablePanDownToClose={true}
-          backgroundStyle={sheetStyles.bSheet}
-        >
-          <BottomSheetScrollView contentContainerStyle={sheetStyles.bView}>
-            <Text style={sheetStyles.titulo}>Opciones de Presupuesto</Text>
-
-            <TouchableHighlight
-              style={sheetStyles.THBtn}
-              underlayColor={"#ECFDF5"}
-              onPress={handleOpenAddSheet}
-            >
-              <Text style={sheetStyles.BtnTxt}>Añadir Nueva Categoría</Text>
-            </TouchableHighlight>
-          </BottomSheetScrollView>
-        </BottomSheet>
-
-        <CategoryFormSheet
-          bottomSheetRef={bottomSheetCategoryRef}
-          onSave={handleSaveCategory}
-          isEditing={isEditing}
-          categoryToEdit={categoryToEdit}
-          snapPoints={snapPointsForm}
-        />
-      </View>
-    </GestureHandlerRootView>
+          <CategoryFormSheet
+            bottomSheetRef={bottomSheetCategoryRef}
+            onSave={handleSaveCategory}
+            isEditing={isEditing}
+            categoryToEdit={categoryToEdit}
+            snapPoints={snapPointsForm}
+          />
+        </View>
+      </GestureHandlerRootView>
+    </MenuProvider>
   );
 }
 
@@ -423,10 +447,15 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.lightGrey,
   },
+  categoryTitleRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 10,
+  },
   categoryHeader: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 10,
   },
   iconPlaceholder: {
     marginRight: 10,
@@ -438,6 +467,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     color: COLORS.textDark,
+  },
+  optionsButton: {
+    padding: 5,
   },
   limitDetails: {
     flexDirection: "row",
@@ -484,6 +516,26 @@ const styles = StyleSheet.create({
     fontSize: 30,
     lineHeight: 32,
   },
+  menuOptionsContainer: {
+    borderRadius: 10,
+    padding: 0,
+    width: 150,
+  },
+  menuOptionWrapper: {
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.lightGrey,
+  },
+  menuOptionText: {
+    fontSize: 16,
+    color: COLORS.textDark,
+    textAlign: 'center',
+  },
+  deleteOptionText: {
+    color: COLORS.danger,
+    borderBottomWidth: 0,
+  }
 });
 
 const sheetStyles = StyleSheet.create({
