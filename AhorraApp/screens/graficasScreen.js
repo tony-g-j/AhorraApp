@@ -4,19 +4,34 @@ import { View, Text, ScrollView, Dimensions, StyleSheet } from "react-native";
 import { PieChart, LineChart } from "react-native-chart-kit";
 
 const screenWidth = Dimensions.get("window").width;
+const screenHeight = Dimensions.get("window").height;
 
-export default function graficaScreen() {
-  const ingresosPorCategoria = [
-    { name: "Salario", amount: 2500, color: "#4CAF50", legendFontColor: "#222", legendFontSize: 16 , legendFontFamily: 'System'},
-    { name: "Ventas", amount: 800, color: "#81C784", legendFontColor: "#222", legendFontSize: 16, legendFontFamily: 'System' },
-    { name: "Ingresos Extra", amount: 300, color: "#A5D6A7", legendFontColor: "#222", legendFontSize: 16, legendFontFamily: 'System' },
-  ];
+const NEW_COLORS = {
+  primaryGreen: "#28a745",
+  secondaryGreen: "#218838",
+  primaryRed: "#dc3545",
+  secondaryRed: "#c82333",
+  darkText: "#2c3e50",
+  lightText: "#6c757d",
+  backgroundLight: "#bff0ea",
+  cardBackground: "#ffffff",
+  shadow: "rgba(0, 0, 0, 0.2)",
+  buttonPrimary: "#007bff",
+  buttonText: "#ffffff",
+  borderLight: "#e0e0e0",
+};
 
-  const egresosPorCategoria = [
-    { name: "Alimentación", amount: 1200, color: "#E53935", legendFontColor: "#222", legendFontSize: 16, legendFontFamily: 'System' },
-    { name: "Transporte", amount: 600, color: "#EF5350", legendFontColor: "#222", legendFontSize: 16, legendFontFamily: 'System' },
-    { name: "Entretenimiento", amount: 400, color: "#FF8A80", legendFontColor: "#222", legendFontSize: 16, legendFontFamily: 'System' },
-  ];
+const ingresosPorCategoria = [
+  { name: "Salario", amount: 2500, color: NEW_COLORS.primaryGreen },
+  { name: "Ventas", amount: 850, color: NEW_COLORS.secondaryGreen},
+  { name: "Ingresos Extra", amount: 300, color: "#90EE90"},
+];
+
+const egresosPorCategoria = [
+  { name: "Alimentación", amount: 1200, color: NEW_COLORS.primaryRed},
+  { name: "Transporte", amount: 600, color: NEW_COLORS.secondaryRed},
+  { name: "Entretenimiento", amount: 400, color: "#F08080" },
+];
 
   const dataMensual = {
     labels: ["Ene", "Feb", "Mar", "Abr", "May", "Jun"],
@@ -35,50 +50,75 @@ export default function graficaScreen() {
     legend: ["Ingresos", "Egresos"],
   };
 
-  const chartConfig = {
-    backgroundColor: "#f3fefdff",
-    backgroundGradientFrom: "#ffffff",
-    backgroundGradientTo: "#ffffff",
-    color: (opacity = 1) => 'rgba(0, 0, 0, ' + opacity + ')',
-    decimalPlaces: 0,
-    propsForLabels:{
-      fontFamily:'System',
-      fontWeight:'bold'
-    },
-  };
+const chartConfig = {
+  backgroundColor: NEW_COLORS.cardBackground,
+  backgroundGradientFrom: NEW_COLORS.cardBackground,
+  backgroundGradientTo: NEW_COLORS.cardBackground,
+  color: (opacity = 1) => `rgba(0, 0, 0, ${opacity * 0.7})`,
+  decimalPlaces: 0,
+  strokeWidth: 3,
+  barPercentage: 0.5,
+  useShadowColorFromDataset: false,
+  propsForDots: {
+    r: "5",
+    strokeWidth: "2",
+    stroke: NEW_COLORS.darkText,
+  },
+};
 
-  return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      <View style={styles.content}>
-        <Text style={styles.title}>Resumen Financiero</Text>
+const PieChartSheet = ({ sheetRef, title, data }) => {
+    const snapPoints = useMemo(() => ['1%', screenHeight * 0.90], []);
+    
+    const totalAmount = data.reduce((sum, item) => sum + item.amount, 0);
 
-        <View style={styles.chartContainer}>
-          <Text style={styles.subtitle}>Ingresos por Categoría</Text>
-          <View style={styles.centerChart}>
-            <PieChart
-              data={ingresosPorCategoria}
-              width={screenWidth * 0.85}
-              height={220}
-              chartConfig={chartConfig}
-              accessor="amount"
-              backgroundColor="transparent"
-            />
-          </View>
+    const renderManualLegend = () => (
+        <View style={sheetStyles.manualLegendContainer}>
+            {data.map((item, index) => {
+                const percentage = totalAmount > 0 ? Math.round((item.amount / totalAmount) * 100) : 0;
+                return (
+                    <View key={index} style={sheetStyles.legendItem}>
+                        <View style={[sheetStyles.legendDot, { backgroundColor: item.color }]} />
+                        <View style={sheetStyles.legendTextContainer}>
+                            <Text style={sheetStyles.legendCategory}>{item.name}</Text>
+                            <Text style={sheetStyles.legendPercentage}>{percentage}% ({item.amount})</Text>
+                        </View>
+                    </View>
+                );
+            })}
         </View>
+    );
 
-        <View style={styles.chartContainer}>
-          <Text style={styles.subtitle}>Egresos por Categoría</Text>
-          <View style={styles.centerChart}>
-            <PieChart
-              data={egresosPorCategoria}
-              width={screenWidth * 0.85}
-              height={220}
-              chartConfig={chartConfig}
-              accessor="amount"
-              backgroundColor="transparent"
-            />
-          </View>
-        </View>
+    return (
+        <BottomSheet
+            ref={sheetRef}
+            snapPoints={snapPoints}
+            index={-1}
+            enablePanDownToClose={true}
+            backgroundStyle={sheetStyles.background}
+            handleIndicatorStyle={sheetStyles.handleIndicator}
+        >
+            <BottomSheetScrollView contentContainerStyle={sheetStyles.content}>
+                <Text style={sheetStyles.title}>{title}</Text>
+                
+                <View style={sheetStyles.chartContainer}>
+                    <PieChart
+                        data={data}
+                        width={screenWidth} 
+                        height={240}
+                        chartConfig={chartConfig}
+                        accessor="amount"
+                        backgroundColor="transparent"
+                        paddingLeft={screenWidth / 4}
+                        hasLegend={false} 
+                        center={[0, 0]}
+                        absolute={false}
+                    />
+                </View>
+
+                <View style={sheetStyles.legendSection}>
+                    <Text style={sheetStyles.sectionHeader}>Detalle por Categoría:</Text>
+                    {renderManualLegend()}
+                </View>
 
         <View style={styles.chartContainer}>
           <Text style={styles.subtitle}>Tendencia Mensual de Ingresos y Egresos</Text>
