@@ -3,7 +3,6 @@ import { MenuProvider } from "react-native-popup-menu";
 import { NavigationContainer } from "@react-navigation/native";
 import RootNav from './navigation/RootNav'
 
-
 export default function App() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -14,4 +13,4 @@ export default function App() {
       </MenuProvider>
     </GestureHandlerRootView>
   );
-};
+}
