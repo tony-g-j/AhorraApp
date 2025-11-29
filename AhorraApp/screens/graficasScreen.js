@@ -3,6 +3,7 @@ import { View, Text, ScrollView, Dimensions, StyleSheet, TouchableOpacity } from
 import { LineChart, PieChart } from "react-native-chart-kit";
 import BottomSheet, { BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { MaterialIcons} from '@expo/vector-icons';
 
 const screenWidth = Dimensions.get("window").width;
 const screenHeight = Dimensions.get("window").height;
@@ -206,33 +207,39 @@ export default function GraficaScreen() {
     return (
         <GestureHandlerRootView style={{ flex: 1 }}>
             <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-                <View style={styles.content}>
-                    <Text style={styles.title}>Resumen Financiero</Text>
+            <View style={styles.graphButtonsContainer}>
 
-                    <TouchableOpacity
-                        style={[styles.chartContainer, styles.button]}
-                        onPress={() => openSheet(sheetIngresosRef)}
-                    >
-                        <Text style={styles.subtitle}>Ingresos por Categoría</Text>
-                        <Text style={styles.buttonText}>VER GRÁFICA DETALLADA</Text>
-                    </TouchableOpacity>
+                <TouchableOpacity 
+                    style={[styles.graphButton, styles.greenButton]}
+                    onPress={() => openSheet(sheetIngresosRef)}
+                >
+                    <MaterialIcons name="pie-chart" size={26} color="#1A7F4B" />
+                    <Text style={[styles.graphButtonText, { color: "#1A7F4B" }]}>
+                        Ver Ingresos
+                    </Text>
+                </TouchableOpacity>
 
-                    <TouchableOpacity
-                        style={[styles.chartContainer, styles.button]}
-                        onPress={() => openSheet(sheetEgresosRef)}
-                    >
-                        <Text style={styles.subtitle}>Egresos por Categoría</Text>
-                        <Text style={styles.buttonText}>VER GRÁFICA DETALLADA</Text>
-                    </TouchableOpacity>
+                <TouchableOpacity 
+                    style={[styles.graphButton, styles.redButton]}
+                    onPress={() => openSheet(sheetEgresosRef)}
+                >
+                    <MaterialIcons name="stacked-bar-chart" size={26} color="#C0392B" />
+                    <Text style={[styles.graphButtonText, { color: "#C0392B" }]}>
+                        Ver Egresos
+                    </Text>
+                </TouchableOpacity>
 
-                    <TouchableOpacity
-                        style={[styles.chartContainer, styles.button]}
-                        onPress={() => openSheet(sheetTendenciaRef)}
-                    >
-                        <Text style={styles.subtitle}>Tendencia Mensual de Ingresos y Egresos</Text>
-                        <Text style={styles.buttonText}>VER GRÁFICA DETALLADA</Text>
-                    </TouchableOpacity>
-                </View>
+                <TouchableOpacity 
+                    style={[styles.graphButton, styles.purpleButton]}
+                    onPress={() => openSheet(sheetTendenciaRef)}
+                >
+                    <MaterialIcons name="show-chart" size={26} color="#6C3BCE" />
+                    <Text style={[styles.graphButtonText, { color: "#6C3BCE" }]}>
+                        Ver Tendencia
+                    </Text>
+                </TouchableOpacity>
+
+            </View>
             </ScrollView>
 
             <PieChartSheet
@@ -266,6 +273,11 @@ const styles = StyleSheet.create({
         alignItems: "center",
         paddingBottom: 40,
     },
+    centerWrapper: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center", 
+    },
     title: {
         fontSize: 28,
         fontWeight: "800",
@@ -273,49 +285,56 @@ const styles = StyleSheet.create({
         marginVertical: 20,
         color: NEW_COLORS.darkText,
     },
-    subtitle: {
-        fontSize: 18,
-        fontWeight: "700",
-        color: NEW_COLORS.darkText,
-        textAlign: "center",
-        marginBottom: 5,
-    },
-    chartContainer: {
-        backgroundColor: NEW_COLORS.cardBackground,
-        borderRadius: 16,
-        padding: 18,
-        width: "90%",
-        alignItems: "center",
-        marginVertical: 12,
-        shadowColor: NEW_COLORS.shadow,
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.8,
-        shadowRadius: 6,
-        elevation: 10,
-    },
     chartWrapper: {
         borderRadius: 12,
         overflow: 'hidden',
         marginVertical: 10,
         backgroundColor: NEW_COLORS.cardBackground,
     },
-    centerChart: {
-        alignItems: "center",
-        justifyContent: "center",
-    },
     button: {
         height: 120,
         justifyContent: 'center',
     },
-    buttonText: {
+    greenButton: {
+        borderLeftWidth: 6,
+        borderLeftColor: "#1A7F4B",
+        },
+    redButton: {
+        borderLeftWidth: 6,
+        borderLeftColor: "#C0392B",
+        },
+    purpleButton: {
+        borderLeftWidth: 6,
+        borderLeftColor: "#6C3BCE",
+},
+    graphButtonsContainer: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        marginTop: 15,
+        marginBottom: 25,
+    },
+
+    graphButton: {
+        flex: 1,
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: "#ffffff",
+        paddingVertical: 14,
+        marginHorizontal: 5,
+        borderRadius: 12,
+        elevation: 6,
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 3 },
+        shadowOpacity: 0.25,
+        shadowRadius: 4,
+    },
+
+    graphButtonText: {
         fontSize: 15,
-        fontWeight: 'bold',
-        marginTop: 8,
-        color: NEW_COLORS.buttonPrimary,
-        borderTopWidth: 1,
-        borderTopColor: NEW_COLORS.borderLight,
-        paddingTop: 10,
-    }
+        fontWeight: "700",
+        marginLeft: 8,
+    },
 });
 
 const sheetStyles = StyleSheet.create({
