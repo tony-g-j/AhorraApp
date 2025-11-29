@@ -23,33 +23,33 @@ const NEW_COLORS = {
 };
 
 const ingresosPorCategoria = [
-  { name: "Salario", amount: 2500, color: NEW_COLORS.primaryGreen, legendFontColor: NEW_COLORS.darkText, legendFontSize: 16 },
-  { name: "Ventas", amount: 850, color: NEW_COLORS.secondaryGreen, legendFontColor: NEW_COLORS.darkText, legendFontSize: 16 },
-  { name: "Ingresos Extra", amount: 300, color: "#90EE90", legendFontColor: NEW_COLORS.darkText, legendFontSize: 16 },
+  { name: "Salario", amount: 2500, color: NEW_COLORS.primaryGreen },
+  { name: "Ventas", amount: 850, color: NEW_COLORS.secondaryGreen},
+  { name: "Ingresos Extra", amount: 300, color: "#90EE90"},
 ];
 
 const egresosPorCategoria = [
-  { name: "Alimentación", amount: 1200, color: NEW_COLORS.primaryRed, legendFontColor: NEW_COLORS.darkText, legendFontSize: 16 },
-  { name: "Transporte", amount: 600, color: NEW_COLORS.secondaryRed, legendFontColor: NEW_COLORS.darkText, legendFontSize: 16 },
-  { name: "Entretenimiento", amount: 400, color: "#F08080", legendFontColor: NEW_COLORS.darkText, legendFontSize: 16 },
+  { name: "Alimentación", amount: 1200, color: NEW_COLORS.primaryRed},
+  { name: "Transporte", amount: 600, color: NEW_COLORS.secondaryRed},
+  { name: "Entretenimiento", amount: 400, color: "#F08080" },
 ];
 
-const dataMensual = {
-  labels: ["Ene", "Feb", "Mar", "Abr", "May", "Jun"],
-  datasets: [
-    {
-      data: [2500, 2300, 2800, 2600, 3000, 2900],
-      color: () => NEW_COLORS.primaryGreen,
-      strokeWidth: 3,
-    },
-    {
-      data: [1800, 1900, 2100, 2000, 2200, 2400],
-      color: () => NEW_COLORS.primaryRed,
-      strokeWidth: 3,
-    },
-  ],
-  legend: ["Ingresos", "Egresos"],
-};
+  const dataMensual = {
+    labels: ["Ene", "Feb", "Mar", "Abr", "May", "Jun"],
+    datasets: [
+      {
+        data: [2500, 2300, 2800, 2600, 3000, 2900],
+        color: () => "#4CAF50",
+        strokeWidth: 2,
+      },
+      {
+        data: [1800, 1900, 2100, 2000, 2200, 2400],
+        color: () => "#E53935",
+        strokeWidth: 2,
+      },
+    ],
+    legend: ["Ingresos", "Egresos"],
+  };
 
 const chartConfig = {
   backgroundColor: NEW_COLORS.cardBackground,
@@ -57,11 +57,6 @@ const chartConfig = {
   backgroundGradientTo: NEW_COLORS.cardBackground,
   color: (opacity = 1) => `rgba(0, 0, 0, ${opacity * 0.7})`,
   decimalPlaces: 0,
-  propsForLabels:{
-    fontFamily:'System',
-    fontWeight:'bold',
-    fontSize: 12,
-  },
   strokeWidth: 3,
   barPercentage: 0.5,
   useShadowColorFromDataset: false,
@@ -73,7 +68,7 @@ const chartConfig = {
 };
 
 const PieChartSheet = ({ sheetRef, title, data }) => {
-    const snapPoints = useMemo(() => ['1%', screenHeight * 0.8], []);
+    const snapPoints = useMemo(() => ['1%', screenHeight * 0.90], []);
     
     const totalAmount = data.reduce((sum, item) => sum + item.amount, 0);
 
@@ -84,9 +79,10 @@ const PieChartSheet = ({ sheetRef, title, data }) => {
                 return (
                     <View key={index} style={sheetStyles.legendItem}>
                         <View style={[sheetStyles.legendDot, { backgroundColor: item.color }]} />
-                        <Text style={sheetStyles.legendText}>
-                            {percentage}% {item.name}
-                        </Text>
+                        <View style={sheetStyles.legendTextContainer}>
+                            <Text style={sheetStyles.legendCategory}>{item.name}</Text>
+                            <Text style={sheetStyles.legendPercentage}>{percentage}% ({item.amount})</Text>
+                        </View>
                     </View>
                 );
             })}
@@ -97,7 +93,7 @@ const PieChartSheet = ({ sheetRef, title, data }) => {
         <BottomSheet
             ref={sheetRef}
             snapPoints={snapPoints}
-            index={0}
+            index={-1}
             enablePanDownToClose={true}
             backgroundStyle={sheetStyles.background}
             handleIndicatorStyle={sheetStyles.handleIndicator}
@@ -105,140 +101,25 @@ const PieChartSheet = ({ sheetRef, title, data }) => {
             <BottomSheetScrollView contentContainerStyle={sheetStyles.content}>
                 <Text style={sheetStyles.title}>{title}</Text>
                 
-                <View style={sheetStyles.chartAndInfoRow}>
-                    <View style={sheetStyles.chartColumn}>
-                        <PieChart
-                            data={data}
-                            width={screenWidth * 0.5}
-                            height={220}
-                            chartConfig={chartConfig}
-                            accessor="amount"
-                            backgroundColor="transparent"
-                            paddingLeft={0}
-                            center={[0, 0]}
-                            has={false}
-                        />
-                    </View>
-                    
-                    <View style={sheetStyles.infoColumn}>
-                        {renderManualLegend()}
-                    </View>
-                </View>
-
-                <View style={sheetStyles.infoCard}>
-                    <Text style={sheetStyles.infoTitle}>Análisis de Distribución</Text>
-                    <Text style={sheetStyles.description}>
-                        Esta gráfica muestra la distribución porcentual de tus fondos en las distintas categorías. El tamaño de cada sección representa su peso relativo en el total.
-                    </Text>
-                </View>
-            </BottomSheetScrollView>
-        </BottomSheet>
-    );
-};
-
-const LineChartSheet = ({ sheetRef, title, data, customConfig = {} }) => {
-    const snapPoints = useMemo(() => ['1%', screenHeight * 0.8], []);
-    
-    const currentChartConfig = {
-        ...chartConfig,
-        ...customConfig,
-        fillShadowGradient: data.datasets && data.datasets.length === 1 ? data.datasets[0].color()() : "rgba(0,0,0,0)",
-        fillShadowGradientOpacity: data.datasets && data.datasets.length === 1 ? 0.1 : 0,
-    };
-
-    return (
-        <BottomSheet
-            ref={sheetRef}
-            snapPoints={snapPoints}
-            index={0}
-            enablePanDownToClose={true}
-            backgroundStyle={sheetStyles.background}
-            handleIndicatorStyle={sheetStyles.handleIndicator}
-        >
-            <BottomSheetScrollView contentContainerStyle={sheetStyles.content}>
-                <Text style={sheetStyles.title}>{title}</Text>
-                
-                <View style={styles.chartWrapper}>
-                    <LineChart
+                <View style={sheetStyles.chartContainer}>
+                    <PieChart
                         data={data}
-                        width={screenWidth * 0.9 - 20}
-                        height={300}
-                        chartConfig={currentChartConfig}
-                        bezier
-                        style={sheetStyles.chartStyle}
-                        segments={data.labels.length > 4 ? 4 : data.labels.length}
+                        width={screenWidth} 
+                        height={240}
+                        chartConfig={chartConfig}
+                        accessor="amount"
+                        backgroundColor="transparent"
+                        paddingLeft={screenWidth / 4}
+                        hasLegend={false} 
+                        center={[0, 0]}
+                        absolute={false}
                     />
                 </View>
-                
-                <View style={sheetStyles.infoCard}>
-                    <Text style={sheetStyles.infoTitle}>Análisis de Tendencia</Text>
-                    <Text style={sheetStyles.description}>
-                        Esta gráfica detalla la tendencia de tus movimientos a través de los meses, ayudando a identificar estacionalidad y variaciones históricas.
-                    </Text>
+
+                <View style={sheetStyles.legendSection}>
+                    <Text style={sheetStyles.sectionHeader}>Detalle por Categoría:</Text>
+                    {renderManualLegend()}
                 </View>
-            </BottomSheetScrollView>
-        </BottomSheet>
-    );
-};
-
-export default function GraficaScreen() {
-    const sheetIngresosRef = useRef(null);
-    const sheetEgresosRef = useRef(null);
-    const sheetTendenciaRef = useRef(null);
-
-    const allRefs = useMemo(() => [
-        sheetIngresosRef,
-        sheetEgresosRef,
-        sheetTendenciaRef,
-    ], []);
-
-    const openSheet = useCallback((refToOpen) => {
-        allRefs.forEach(ref => {
-            if (ref.current && ref.current !== refToOpen.current) {
-                ref.current.close();
-            }
-        });
-
-        refToOpen.current?.snapToIndex(1);
-    }, [allRefs]);
-
-    return (
-        <GestureHandlerRootView style={{ flex: 1 }}>
-            <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-                <View style={styles.content}>
-                    <Text style={styles.title}>Resumen Financiero</Text>
-
-                    <TouchableOpacity
-                        style={[styles.chartContainer, styles.button]}
-                        onPress={() => openSheet(sheetIngresosRef)}
-                    >
-                        <Text style={styles.subtitle}>Ingresos por Categoría</Text>
-                        <Text style={styles.buttonText}>VER GRÁFICA DETALLADA</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                        style={[styles.chartContainer, styles.button]}
-                        onPress={() => openSheet(sheetEgresosRef)}
-                    >
-                        <Text style={styles.subtitle}>Egresos por Categoría</Text>
-                        <Text style={styles.buttonText}>VER GRÁFICA DETALLADA</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                        style={[styles.chartContainer, styles.button]}
-                        onPress={() => openSheet(sheetTendenciaRef)}
-                    >
-                        <Text style={styles.subtitle}>Tendencia Mensual de Ingresos y Egresos</Text>
-                        <Text style={styles.buttonText}>VER GRÁFICA DETALLADA</Text>
-                    </TouchableOpacity>
-                </View>
-            </ScrollView>
-
-            <PieChartSheet
-                sheetRef={sheetIngresosRef}
-                title="Ingresos por Categoría"
-                data={ingresosPorCategoria}
-            />
 
             <PieChartSheet
                 sheetRef={sheetEgresosRef}
