@@ -179,37 +179,25 @@ export default function PresupuestosScreen() {
   }, []);
 
   const handleDeleteCategory = useCallback((id) => {
-    setCategories((prev) => prev.filter((cat) => cat.id !== id));
-    Alert.alert("Éxito", "Categoría eliminada.");
+    Alert.alert(
+      "Confirmar Eliminación",
+      "¿Estás seguro de que quieres eliminar esta categoría? Esta acción no se puede deshacer.",
+      [
+        {
+          text: "Cancelar",
+          style: "cancel",
+        },
+        {
+          text: "Eliminar",
+          style: "destructive",
+          onPress: () => {
+            setCategories((prev) => prev.filter((cat) => cat.id !== id));
+            Alert.alert("Éxito", "Categoría eliminada.");
+          },
+        },
+      ]
+    );
   }, []);
-
-  const modalOptions = useCallback(
-    (item) => {
-      Alert.alert(
-        "Opciones de Categoría",
-        `¿Qué deseas hacer con "${item.name}"?`,
-        [
-          {
-            text: "Eliminar",
-            onPress: () => handleDeleteCategory(item.id),
-            style: "destructive",
-          },
-          {
-            text: "Editar",
-            onPress: () => {
-              handleOpenEditSheet(item);
-            },
-          },
-          {
-            text: "Cancelar",
-            style: "cancel",
-          },
-        ],
-        { cancelable: true }
-      );
-    },
-    [handleOpenEditSheet, handleDeleteCategory]
-  );
 
   const handleSaveCategory = useCallback(
     (newCategoryData) => {
@@ -462,10 +450,15 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.lightGrey,
   },
+  categoryTitleRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 10,
+  },
   categoryHeader: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 10,
   },
   iconPlaceholder: {
     marginRight: 10,
@@ -477,6 +470,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     color: COLORS.textDark,
+  },
+  optionsButton: {
+    padding: 5,
   },
   limitDetails: {
     flexDirection: "row",
@@ -523,6 +519,26 @@ const styles = StyleSheet.create({
     fontSize: 30,
     lineHeight: 32,
   },
+  menuOptionsContainer: {
+    borderRadius: 10,
+    padding: 0,
+    width: 150,
+  },
+  menuOptionWrapper: {
+    paddingVertical: 10,
+    paddingHorizontal: 15,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.lightGrey,
+  },
+  menuOptionText: {
+    fontSize: 16,
+    color: COLORS.textDark,
+    textAlign: 'center',
+  },
+  deleteOptionText: {
+    color: COLORS.danger,
+    borderBottomWidth: 0,
+  }
 });
 
 const sheetStyles = StyleSheet.create({

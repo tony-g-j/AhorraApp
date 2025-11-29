@@ -1,7 +1,8 @@
-// Importación de librerías necesarias
-import React from "react";
-import { View, Text, ScrollView, Dimensions, StyleSheet } from "react-native";
-import { PieChart, LineChart } from "react-native-chart-kit";
+import React, { useRef, useMemo, useCallback } from "react";
+import { View, Text, ScrollView, Dimensions, StyleSheet, TouchableOpacity } from "react-native";
+import { LineChart, PieChart } from "react-native-chart-kit";
+import BottomSheet, { BottomSheetScrollView } from "@gorhom/bottom-sheet";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 const screenWidth = Dimensions.get("window").width;
 const screenHeight = Dimensions.get("window").height;
@@ -120,64 +121,165 @@ const PieChartSheet = ({ sheetRef, title, data }) => {
                     {renderManualLegend()}
                 </View>
 
-        <View style={styles.chartContainer}>
-          <Text style={styles.subtitle}>Tendencia Mensual de Ingresos y Egresos</Text>
-          <View style={styles.centerChart}>
-            <LineChart
-              data={dataMensual}
-              width={screenWidth * 0.75}
-              height={260}
-              chartConfig={chartConfig}
-              bezier
-              style={{ borderRadius: 12,
-              }}
+            <PieChartSheet
+                sheetRef={sheetEgresosRef}
+                title="Egresos por Categoría"
+                data={egresosPorCategoria}
             />
-          </View>
-        </View>
-      </View>
-    </ScrollView>
-  );
+
+            <LineChartSheet
+                sheetRef={sheetTendenciaRef}
+                title="Tendencia Mensual de Ingresos y Egresos"
+                data={dataMensual}
+            />
+        </GestureHandlerRootView>
+    );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#bff0ea",
-    padding: 10,
-  },
-  content: {
-    alignItems: "center",
-  },
-  title: {
-    fontSize: 26,
-    fontWeight: "700",
-    textAlign: "center",
-    marginVertical: 20,
-    color: "#1a1a1a",
-    letterSpacing: 0.5,
-  },
-  subtitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    marginBottom: 10,
-    color: "#2c3e50",
-    textAlign: "center",
-  },
-  chartContainer: {
-    backgroundColor: "#ffffff",
-    borderRadius: 16,
-    padding: 18,
-    width: "85%",  
-    alignItems: "center", 
-    marginVertical: 12,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 6,
-    elevation: 5,
-  },
-  centerChart: {
-    alignItems: "center",
-    justifyContent: "center",
-  },
+    container: {
+        flex: 1,
+        backgroundColor: NEW_COLORS.backgroundLight,
+        padding: 10,
+    },
+    content: {
+        alignItems: "center",
+        paddingBottom: 40,
+    },
+    title: {
+        fontSize: 28,
+        fontWeight: "800",
+        textAlign: "center",
+        marginVertical: 20,
+        color: NEW_COLORS.darkText,
+    },
+    subtitle: {
+        fontSize: 18,
+        fontWeight: "700",
+        color: NEW_COLORS.darkText,
+        textAlign: "center",
+        marginBottom: 5,
+    },
+    chartContainer: {
+        backgroundColor: NEW_COLORS.cardBackground,
+        borderRadius: 16,
+        padding: 18,
+        width: "90%",
+        alignItems: "center",
+        marginVertical: 12,
+        shadowColor: NEW_COLORS.shadow,
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.8,
+        shadowRadius: 6,
+        elevation: 10,
+    },
+    chartWrapper: {
+        borderRadius: 12,
+        overflow: 'hidden',
+        marginVertical: 10,
+        backgroundColor: NEW_COLORS.cardBackground,
+    },
+    centerChart: {
+        alignItems: "center",
+        justifyContent: "center",
+    },
+    button: {
+        height: 120,
+        justifyContent: 'center',
+    },
+    buttonText: {
+        fontSize: 15,
+        fontWeight: 'bold',
+        marginTop: 8,
+        color: NEW_COLORS.buttonPrimary,
+        borderTopWidth: 1,
+        borderTopColor: NEW_COLORS.borderLight,
+        paddingTop: 10,
+    }
+});
+
+const sheetStyles = StyleSheet.create({
+    background: {
+        backgroundColor: NEW_COLORS.cardBackground,
+        shadowColor: NEW_COLORS.shadow,
+        shadowOffset: { width: 0, height: -5 },
+        shadowOpacity: 0.4,
+        shadowRadius: 10,
+        elevation: 20,
+    },
+    handleIndicator: {
+        backgroundColor: NEW_COLORS.lightText,
+        width: 40,
+        height: 5,
+    },
+    content: {
+        paddingHorizontal: 15,
+        paddingBottom: 50,
+        alignItems: 'center',
+    },
+    title: {
+        fontSize: 24,
+        fontWeight: '800',
+        marginBottom: 20,
+        color: NEW_COLORS.darkText,
+        textAlign: 'center',
+        paddingTop: 10,
+    },
+    chartAndInfoRow: {
+        flexDirection: 'row',
+        width: '100%',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 20,
+    },
+    chartColumn: {
+        width: '50%',
+        height: 220,
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    infoColumn: {
+        width: '50%',
+        paddingLeft: 10,
+        justifyContent: 'center',
+    },
+    manualLegendContainer: {
+        padding: 10,
+    },
+    legendItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 8,
+    },
+    legendDot: {
+        width: 12,
+        height: 12,
+        borderRadius: 6,
+        marginRight: 8,
+    },
+    legendText: {
+        fontSize: 14,
+        color: NEW_COLORS.darkText,
+        fontWeight: '600',
+    },
+    infoCard: {
+        width: '100%',
+        backgroundColor: NEW_COLORS.backgroundLight,
+        borderRadius: 10,
+        padding: 15,
+        marginTop: 20,
+        borderLeftWidth: 5,
+        borderLeftColor: NEW_COLORS.primaryGreen,
+    },
+    infoTitle: {
+        fontSize: 16,
+        fontWeight: 'bold',
+        color: NEW_COLORS.darkText,
+        marginBottom: 5,
+    },
+    description: {
+        fontSize: 14,
+        color: NEW_COLORS.lightText,
+        lineHeight: 20,
+    }
 });
