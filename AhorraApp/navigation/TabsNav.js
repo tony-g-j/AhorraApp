@@ -6,7 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 const Tab = createBottomTabNavigator();
 
-export default function TabsNav(){
+export default function TabsNav({ activeUserId, onLogout }){
     return(
         <Tab.Navigator 
             screenOptions={{
