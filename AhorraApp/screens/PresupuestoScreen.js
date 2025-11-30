@@ -17,7 +17,6 @@ import {
   TouchableHighlight,
 } from "react-native";
 import BottomSheet, { BottomSheetScrollView } from "@gorhom/bottom-sheet";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 
 import {
@@ -206,10 +205,10 @@ export default function PresupuestosScreen() {
           prev.map((cat) =>
             cat.id === newCategoryData.id
               ? {
-                ...cat,
-                name: newCategoryData.name,
-                limit: newCategoryData.limit,
-              }
+                  ...cat,
+                  name: newCategoryData.name,
+                  limit: newCategoryData.limit,
+                }
               : cat
           )
         );
@@ -228,9 +227,11 @@ export default function PresupuestosScreen() {
   );
 
   return (
-    <SafeAreaView style={{flex:1}}>
+    <SafeAreaView 
+      style={{flex: 1, backgroundColor: COLORS.background}} 
+      edges={['top', 'left', 'right']}
+    >
       <MenuProvider>
-        <GestureHandlerRootView style={{ flex: 1 }}>
           <View style={styles.container}>
             <Text style={styles.header}>💰 Mi Presupuesto Mensual</Text>
 
@@ -369,7 +370,6 @@ export default function PresupuestosScreen() {
               snapPoints={snapPointsForm}
             />
           </View>
-        </GestureHandlerRootView>
       </MenuProvider>
     </SafeAreaView>
   );
