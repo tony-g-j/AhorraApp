@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TextInput, Button, Image, ScrollView, Switch, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, StyleSheet, TextInput, Button, Image, ScrollView, Switch, ActivityIndicator, Alert, TouchableOpacity } from 'react-native';
 import Logo from '../assets/logo.png'; 
 
-export default function InicioSesionScreen() {
+export default function InicioSesionScreen({ onLoginSuccess, onRegisterSuccess, onRecoverAttempt, users }) {
   const [pantalla, setPantalla] = useState('splash');
   const [loading, setLoading] = useState(true);
 
@@ -19,10 +19,23 @@ export default function InicioSesionScreen() {
       {pantalla === 'login' && 
       <LoginScreen
        onRegister={() => setPantalla('register')} 
-       onForgot={() => setPantalla('forgot')}/>}
+       onForgot={() => setPantalla('forgot')}
+       onLoginAttempt={onLoginSuccess}
+       users={users}
+       />}
 
-      {pantalla === 'register' && <RegisterScreen onLogin={() => setPantalla('login')} />}
-      {pantalla === 'forgot' && (<ForgotPasswordScreen onBack={() => setPantalla('login')}/> )}
+      {pantalla === 'register' && 
+      <RegisterScreen 
+        onLogin={() => setPantalla('login')} 
+        onRegisterAttempt={onRegisterSuccess}
+        users={users}
+      />}
+      
+      {pantalla === 'forgot' && (
+      <ForgotPasswordScreen 
+        onBack={() => setPantalla('login')}
+        onRecoverAttempt={onRecoverAttempt}
+      /> )}
     </View>
   );
 }
@@ -40,14 +53,9 @@ function SplashScreen() {
   );
 }
 
-function LoginScreen({ onRegister, onForgot }) {
+function LoginScreen({ onRegister, onForgot, onLoginAttempt, users }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-
-  const usuarios = [
-    { email: 'admin@ahorra.com', password: '123456' },
-    { email: 'user@ahorra.com', password: 'abcdef' },
-  ];
 
   const validarCorreo = (correo) => /^[\w.%+-]+@[\w.-]+\.[A-Za-z]{2,}$/.test(correo);
 
@@ -60,9 +68,12 @@ function LoginScreen({ onRegister, onForgot }) {
       Alert.alert('Correo inválido', 'Ingresa un correo con formato válido');
       return;
     }
-    const usuario = usuarios.find((u) => u.email === email && u.password === password);
+    
+    const usuario = users.find((u) => u.email === email && u.password === password);
+    
     if (usuario) {
-      Alert.alert('Bienvenido', 'Inicio de sesión exitoso');
+      Alert.alert('Bienvenido', `Inicio de sesión exitoso como ${usuario.name}`);
+      onLoginAttempt(usuario.id);
     } else {
       Alert.alert('Error', 'Correo o contraseña incorrectos');
     }
@@ -113,7 +124,7 @@ function LoginScreen({ onRegister, onForgot }) {
   );
 }
 
-function RegisterScreen({ onLogin }) {
+function RegisterScreen({ onLogin, onRegisterAttempt, users }) {
   const [nombre, setNombre] = useState('');
   const [correo, setCorreo] = useState('');
   const [password, setPassword] = useState('');
@@ -130,15 +141,29 @@ function RegisterScreen({ onLogin }) {
       Alert.alert('Correo inválido', 'Formato incorrecto');
       return;
     }
-    if (password.length < 6) {
-      Alert.alert('Contraseña débil', 'Debe tener al menos 6 caracteres');
+    if (users.some(u => u.email === correo)) {
+        Alert.alert('Error', 'Este correo ya está registrado.');
+        return;
+    }
+    if (password.length < 3) {
+      Alert.alert('Contraseña débil', 'Debe tener al menos 3 caracteres');
       return;
     }
     if (!aceptado) {
       Alert.alert('Términos', 'Debes aceptar los términos y condiciones');
       return;
     }
+    
+    const newUser = {
+        id: Date.now().toString(),
+        name: nombre,
+        email: correo,
+        password: password,
+    };
+    
+    onRegisterAttempt(newUser);
     Alert.alert('Registro completo', 'Usuario creado correctamente');
+    onLogin();
   };
 
   return (
@@ -189,7 +214,8 @@ function RegisterScreen({ onLogin }) {
     </View>
   );
 }
-function ForgotPasswordScreen({ onBack }) {
+
+function ForgotPasswordScreen({ onBack, onRecoverAttempt }) {
   const [correo, setCorreo] = useState('');
 
   const validarCorreo = (correo) => /^[\w.%+-]+@[\w.-]+\.[A-Za-z]{2,}$/.test(correo);
@@ -203,8 +229,10 @@ function ForgotPasswordScreen({ onBack }) {
       Alert.alert('Correo inválido', 'Formato incorrecto');
       return;
     }
-
+    
+    onRecoverAttempt(correo);
     Alert.alert('Correo enviado', 'Revisa tu correo para restablecer la contraseña');
+    onBack();
   };
 
   return (
@@ -241,13 +269,13 @@ const styles = StyleSheet.create({
   },
   bg: {
     flex: 1,
-    backgroundColor: '#bff0ea', // fondo sólido
+    backgroundColor: '#bff0ea',
   },
   splashBg: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#70cfc1', // splash sólido
+    backgroundColor: '#70cfc1',
   },
   logoSplash: {
     width: 300,

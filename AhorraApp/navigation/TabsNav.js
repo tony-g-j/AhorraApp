@@ -5,12 +5,12 @@ import GraficasS from '../screens/graficasScreen';
 
 const Tab = createBottomTabNavigator();
 
-export default function TabsNav(){
+export default function TabsNav({ activeUserId, onLogout }){
     return(
         <Tab.Navigator screenOptions={{headerShown: false}}>
-            <Tab.Screen name='Presupuestos' component={PresupuestosS} />
-            <Tab.Screen name='Graficas' component={GraficasS}/>
-            <Tab.Screen name='Registro' component={RegistroGastosS}/>
+            <Tab.Screen name='Presupuestos' component={PresupuestosS} initialParams={{ activeUserId }} /> 
+            <Tab.Screen name='Graficas' component={GraficasS} initialParams={{ activeUserId }}/>
+            <Tab.Screen name='Registro' component={RegistroGastosS} initialParams={{ activeUserId }}/>
         </Tab.Navigator>
     )
 }
