@@ -1,18 +1,45 @@
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import InicioSesionS from "../screens/InicioSesionScreen";
+import InicioSesionScreen from "../screens/InicioSesionScreen";
 import TabsNav from "./TabsNav";
+import React, {useState} from 'react';
+import { View, ActivityIndicator } from 'react-native';
 
-const stack = createNativeStackNavigator();
+const Stack = createNativeStackNavigator();
 
-export default function RootNav({ isLoged }) {
-    isLoged = true;
-  return (
-    <stack.Navigator>
-      {isLoged ? (
-        <stack.Screen name="Main" component={TabsNav} options={{headerShown: false}}/>
-      ) : (
-        <stack.Screen name="Auth" component={InicioSesionS} options={{headerShown: false}} />
-      )}
-    </stack.Navigator>
-  );
+export default function RootNav() {
+    const [currentUser, setCurrentUser] = useState(null);
+
+    const handleLoginSuccess = (usuario) => {
+        console.log("Sesión iniciada:", usuario.nombre);
+        setCurrentUser(usuario);
+    };
+
+    const handleLogout = () => {
+        setCurrentUser(null);
+    };
+
+    return (
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+            {currentUser ? (
+                <Stack.Screen name="Main">
+                    {(props) => (
+                        <TabsNav 
+                            {...props} 
+                            activeUserId={currentUser.id} 
+                            onLogout={handleLogout} 
+                        />
+                    )}
+                </Stack.Screen>
+            ) : (
+                <Stack.Screen name="Auth">
+                    {(props) => (
+                        <InicioSesionScreen 
+                            {...props} 
+                            onLoginSuccess={handleLoginSuccess}
+                        />
+                    )}
+                </Stack.Screen>
+            )}
+        </Stack.Navigator>
+    );
 }
