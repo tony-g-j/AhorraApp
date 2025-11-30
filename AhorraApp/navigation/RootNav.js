@@ -1,62 +1,46 @@
 import React, { useState } from 'react';
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import InicioSesionS from "../screens/InicioSesionScreen";
+import InicioSesionScreen from "../screens/InicioSesionScreen";
 import TabsNav from "./TabsNav";
-import { Alert } from 'react-native';
+import React, {useState} from 'react';
+import { View, ActivityIndicator } from 'react-native';
 
-const stack = createNativeStackNavigator();
-
-const initialUsers = [
-    { id: '1', name: 'Admin', email: 'admin@upq.mx', password: '123' },
-    { id: '2', name: 'Maria', email: 'maria@upq.mx', password: '456' },
-];
+const Stack = createNativeStackNavigator();
 
 export default function RootNav() {
-    const [activeUserId, setActiveUserId] = useState(null); 
-    const [users, setUsers] = useState(initialUsers);
+    const [currentUser, setCurrentUser] = useState(null);
 
-    const handleLoginSuccess = (userId) => {
-        setActiveUserId(userId);
+    const handleLoginSuccess = (usuario) => {
+        console.log("Sesión iniciada:", usuario.nombre);
+        setCurrentUser(usuario);
     };
 
-    const handleRegisterSuccess = (newUser) => {
-        setUsers(prevUsers => [...prevUsers, newUser]);
-    };
-
-    const handleRecoverAttempt = (email) => {
-        const userExists = users.some(u => u.email === email);
-        if (userExists) {
-             Alert.alert('Éxito', `Se simula el envío de correo de recuperación a ${email}.`);
-        } else {
-             Alert.alert('Error', 'Correo no encontrado en el sistema.');
-        }
-    };
-    
     const handleLogout = () => {
-        setActiveUserId(null);
+        setCurrentUser(null);
     };
-
-    const isLoged = !!activeUserId;
 
     return (
-        <stack.Navigator>
-            {isLoged ? (
-                <stack.Screen name="Main" options={{headerShown: false}}>
-                    {(props) => <TabsNav {...props} activeUserId={activeUserId} onLogout={handleLogout} />}
-                </stack.Screen>
-            ) : (
-                <stack.Screen name="Auth" options={{headerShown: false}}>
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+            {currentUser ? (
+                <Stack.Screen name="Main">
                     {(props) => (
-                        <InicioSesionS 
+                        <TabsNav 
                             {...props} 
-                            onLoginSuccess={handleLoginSuccess}
-                            onRegisterSuccess={handleRegisterSuccess}
-                            onRecoverAttempt={handleRecoverAttempt}
-                            users={users}
+                            activeUserId={currentUser.id} 
+                            onLogout={handleLogout} 
                         />
                     )}
-                </stack.Screen>
+                </Stack.Screen>
+            ) : (
+                <Stack.Screen name="Auth">
+                    {(props) => (
+                        <InicioSesionScreen 
+                            {...props} 
+                            onLoginSuccess={handleLoginSuccess}
+                        />
+                    )}
+                </Stack.Screen>
             )}
-        </stack.Navigator>
+        </Stack.Navigator>
     );
 }

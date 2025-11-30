@@ -15,6 +15,7 @@ class DatabaseService {
         nombre TEXT NOT NULL,
         email TEXT NOT NULL UNIQUE,
         password_hash TEXT NOT NULL,
+        palabra_secreta TEXT NOT NULL, 
         telefono TEXT,
         fecha_registro DATETIME DEFAULT CURRENT_TIMESTAMP
       );
@@ -25,7 +26,7 @@ class DatabaseService {
         categoria_id INTEGER PRIMARY KEY AUTOINCREMENT,
         usuario_id INTEGER NOT NULL,
         nombre TEXT NOT NULL,
-        tipo TEXT NOT NULL,
+        tipo TEXT NOT NULL, 
         icono TEXT,
         FOREIGN KEY (usuario_id) REFERENCES usuarios(usuario_id) ON DELETE CASCADE
       );
@@ -74,15 +75,15 @@ class DatabaseService {
       );
     `);
   }
-
+  
   async getUsuarios() {
     return await this.db.getAllAsync('SELECT * FROM usuarios ORDER BY fecha_registro DESC');
   }
 
-  async addUsuario(nombre, email, passwordHash, telefono = null) {
+  async addUsuario(nombre, email, passwordHash, telefono = null, palabraSecreta) {
     const result = await this.db.runAsync(
-      'INSERT INTO usuarios (nombre, email, password_hash, telefono) VALUES (?, ?, ?, ?)',
-      nombre, email, passwordHash, telefono
+      'INSERT INTO usuarios (nombre, email, password_hash, telefono, palabra_secreta) VALUES (?, ?, ?, ?, ?)',
+      nombre, email, passwordHash, telefono, palabraSecreta
     );
     return { id: result.lastInsertRowId, nombre, email };
   }
@@ -91,6 +92,13 @@ class DatabaseService {
     await this.db.runAsync(
       'UPDATE usuarios SET nombre = ?, telefono = ? WHERE usuario_id = ?',
       nombre, telefono, id
+    );
+  }
+
+  async updatePassword(email, newPasswordHash) {
+    await this.db.runAsync(
+        'UPDATE usuarios SET password_hash = ? WHERE email = ?',
+        newPasswordHash, email
     );
   }
 
@@ -113,6 +121,13 @@ class DatabaseService {
     return { id: result.lastInsertRowId, usuarioId, nombre, tipo };
   }
 
+  async updateCategoria(id, nombre, tipo, icono) {
+    await this.db.runAsync(
+      'UPDATE categorias SET nombre = ?, tipo = ?, icono = ? WHERE categoria_id = ?',
+      nombre, tipo, icono, id
+    );
+  }
+
   async deleteCategoria(id) {
     await this.db.runAsync('DELETE FROM categorias WHERE categoria_id = ?', id);
   }
@@ -128,12 +143,21 @@ class DatabaseService {
 
   async getTransacciones(usuarioId) {
     return await this.db.getAllAsync(
-      `SELECT t.*, c.nombre as categoria_nombre, c.icono as categoria_icono 
+      `SELECT t.*, c.nombre as categoria_nombre, c.icono as categoria_icono, c.tipo as categoria_tipo
        FROM transacciones t 
        LEFT JOIN categorias c ON t.categoria_id = c.categoria_id 
        WHERE t.usuario_id = ? 
        ORDER BY t.fecha DESC`,
       usuarioId
+    );
+  }
+
+  async updateTransaccion(id, categoriaId, monto, fecha, descripcion) {
+    await this.db.runAsync(
+      `UPDATE transacciones 
+       SET categoria_id = ?, monto = ?, fecha = ?, descripcion = ? 
+       WHERE transaccion_id = ?`,
+      categoriaId, monto, fecha, descripcion, id
     );
   }
 
@@ -152,11 +176,18 @@ class DatabaseService {
 
   async getPresupuestos(usuarioId, mes, anio) {
     return await this.db.getAllAsync(
-      `SELECT p.*, c.nombre as categoria_nombre 
+      `SELECT p.*, c.nombre as categoria_nombre, c.icono as categoria_icono
        FROM presupuestos p 
        JOIN categorias c ON p.categoria_id = c.categoria_id 
        WHERE p.usuario_id = ? AND p.mes = ? AND p.anio = ?`,
       usuarioId, mes, anio
+    );
+  }
+
+  async updatePresupuesto(id, montoLimite) {
+    await this.db.runAsync(
+      'UPDATE presupuestos SET monto_limite = ? WHERE presupuesto_id = ?',
+      montoLimite, id
     );
   }
 
@@ -165,6 +196,10 @@ class DatabaseService {
       'UPDATE presupuestos SET monto_actual = ? WHERE presupuesto_id = ?',
       nuevoMonto, presupuestoId
     );
+  }
+
+  async deletePresupuesto(id) {
+    await this.db.runAsync('DELETE FROM presupuestos WHERE presupuesto_id = ?', id);
   }
 
   async addRecurrente(usuarioId, categoriaId, monto, descripcion, frecuencia, fechaInicio) {
@@ -178,11 +213,20 @@ class DatabaseService {
 
   async getRecurrentes(usuarioId) {
     return await this.db.getAllAsync(
-      `SELECT r.*, c.nombre as categoria_nombre 
+      `SELECT r.*, c.nombre as categoria_nombre, c.icono as categoria_icono
        FROM recurrentes r 
        JOIN categorias c ON r.categoria_id = c.categoria_id 
        WHERE r.usuario_id = ?`,
       usuarioId
+    );
+  }
+
+  async updateRecurrente(id, categoriaId, monto, descripcion, frecuencia) {
+    await this.db.runAsync(
+      `UPDATE recurrentes 
+       SET categoria_id = ?, monto = ?, descripcion = ?, frecuencia = ? 
+       WHERE recurrente_id = ?`,
+      categoriaId, monto, descripcion, frecuencia, id
     );
   }
 
