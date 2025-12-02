@@ -2,6 +2,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import PresupuestosS from '../screens/PresupuestoScreen';
 import RegistroGastosS from '../screens/registroGastosScreen';
 import GraficasS from '../screens/graficasScreen';
+import { Ionicons } from '@expo/vector-icons';
 
 const Tab = createBottomTabNavigator();
 

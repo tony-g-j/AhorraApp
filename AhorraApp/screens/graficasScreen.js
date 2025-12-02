@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { LineChart, PieChart } from "react-native-chart-kit";
+import { SafeAreaView } from "react-native-safe-area-context";
 import BottomSheet, { BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { MaterialIcons } from "@expo/vector-icons";
@@ -53,9 +54,9 @@ const chartConfig = {
   backgroundGradientTo: NEW_COLORS.cardBackground,
   color: (opacity = 1) => `rgba(0, 0, 0, ${opacity * 0.7})`,
   decimalPlaces: 0,
-  propsForLabels:{
-    fontFamily:'System',
-    fontWeight:'bold',
+  propsForLabels: {
+    fontFamily: "System",
+    fontWeight: "bold",
     fontSize: 12,
   },
   strokeWidth: 3,
