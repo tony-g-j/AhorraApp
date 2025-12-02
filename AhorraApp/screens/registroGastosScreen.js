@@ -32,10 +32,6 @@ import { PresupuestoController } from "../controllers/presupuestoController";
 
 import { SafeAreaView } from "react-native-safe-area-context";
 
-const transaccionController = new TransaccionController();
-const categoriaController = new CategoriaController();
-const presupuestoController = new PresupuestoController();
-
 const nombresMeses = [
   "Ene",
   "Feb",
@@ -51,12 +47,13 @@ const nombresMeses = [
   "Dic",
 ];
 
-import { SafeAreaView } from "react-native-safe-area-context";
-
+<<<<<<< Updated upstream
 const transaccionController = new TransaccionController();
 const categoriaController = new CategoriaController();
 const presupuestoController = new PresupuestoController();
 
+=======
+>>>>>>> Stashed changes
 export default function RegistroGastosScreen({ usuarioId }) {
   const USUARIO_ID = usuarioId;
   const [rawIngresos, setRawIngresos] = useState([]);
@@ -190,7 +187,7 @@ export default function RegistroGastosScreen({ usuarioId }) {
         );
 
         if (resultado && resultado.alerta) {
-          Alert.alert(" Aviso de Presupuesto", resultado.alerta);
+          Alert.alert("Aviso de Presupuesto", resultado.alerta);
         }
       }
 
@@ -204,28 +201,26 @@ export default function RegistroGastosScreen({ usuarioId }) {
     }
   };
 
-  const handleEliminar = useCallback(() => {
-    if (!item) return;
-    const { id, tipo } = item;
+<<<<<<< Updated upstream
+=======
+  const handleEliminar = async (id) => {
+    Alert.alert("Eliminar", "¿Estás seguro?", [
+      { text: "Cancelar", style: "cancel" },
+      {
+        text: "Eliminar",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await transaccionController.eliminarTransaccion(id);
+          } catch (error) {
+            Alert.alert("Error", "No se pudo eliminar");
+          }
+        },
+      },
+    ]);
+  };
 
-    setTimeout(() => {
-      if (tipo === "gasto") {
-        setGastos((gastosActuales) =>
-          gastosActuales.filter((gasto) => gasto.id !== id)
-        );
-      } else if (tipo === "ingreso") {
-        setIngreso((ingresosActuales) =>
-          ingresosActuales.filter((ingreso) => ingreso.id !== id)
-        );
-
-        if (resultado && resultado.alerta) {
-             Alert.alert("⚠️ Aviso de Presupuesto", resultado.alerta);
-        }
-      }
-      setItem(null);
-    }, 300);
-  }, [item]);
-
+>>>>>>> Stashed changes
   const renderItem = ({ item }) => {
     const fechaObj = new Date(item.fecha);
     const dia = fechaObj.getDate();
@@ -233,8 +228,6 @@ export default function RegistroGastosScreen({ usuarioId }) {
     const anio = fechaObj.getFullYear();
 
     const nombreMes = nombresMeses[mesIndex];
-
-    const etiquetaMes = !filtroMes ? `(${nombreMes})` : "";
 
     return (
       <View style={styles.itemContainer}>
@@ -296,16 +289,7 @@ export default function RegistroGastosScreen({ usuarioId }) {
     );
   };
 
-      setDescripcion("");
-      setMonto("");
-      setCatSeleccionada(null);
-      Keyboard.dismiss();
-      bottomSheetRef.current?.close();
-    } catch (error) {
-      Alert.alert("Error", error.message);
-    }
-  };
-
+<<<<<<< Updated upstream
   const handleEliminar = async (id) => {
     Alert.alert("Eliminar", "¿Estás seguro?", [
       { text: "Cancelar", style: "cancel" },
@@ -323,46 +307,8 @@ export default function RegistroGastosScreen({ usuarioId }) {
     ]);
   };
 
-  const renderItem = ({ item }) => (
-    <View style={styles.itemContainer}>
-      <View style={styles.row}>
-        <View style={styles.infoContainer}>
-          <Text style={styles.descripcion}>{item.descripcion}</Text>
-          <Text style={styles.categoria}>
-            {item.nombreCategoria} • {new Date(item.fecha).toLocaleDateString()}
-          </Text>
-        </View>
-        <View style={styles.rightContainer}>
-          <Text
-            style={[
-              styles.monto,
-              {
-                color: item.tipoCategoria === "Ingreso" ? "#10B981" : "#EF4444",
-              },
-            ]}
-          >
-            ${parseFloat(item.monto).toFixed(2)}
-          </Text>
-          <Menu>
-            <MenuTrigger>
-              <Text style={styles.dotsTreeV}>⋮</Text>
-            </MenuTrigger>
-            <MenuOptions>
-              <MenuOption
-                onSelect={() => abrirFormulario(item.tipoCategoria, item)}
-              >
-                <Text style={{ color: "#3B82F6", padding: 10 }}>Editar</Text>
-              </MenuOption>
-              <MenuOption onSelect={() => handleEliminar(item.id)}>
-                <Text style={{ color: "red", padding: 10 }}>Eliminar</Text>
-              </MenuOption>
-            </MenuOptions>
-          </Menu>
-        </View>
-      </View>
-    </View>
-  );
-
+=======
+>>>>>>> Stashed changes
   const renderSelectorCategorias = (
     tipoFiltro,
     seleccionado,

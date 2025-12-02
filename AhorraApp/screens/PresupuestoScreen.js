@@ -235,44 +235,6 @@ export default function PresupuestosScreen({ usuarioId }) {
     }
   }, [usuarioId, mesSeleccionado, anioSeleccionado]);
 
-  const cargarDatos = useCallback(async () => {
-    if (!usuarioId) return;
-    setLoading(true);
-    try {
-      const data = await presupuestoController.obtenerPresupuestos(
-        usuarioId,
-        mesSeleccionado,
-        anioSeleccionado
-      );
-      setPresupuestos(data);
-
-      const totalPlaneado = data.reduce((acc, item) => {
-        if (item.tipoCategoria === "Ingreso") {
-          return acc + item.montoLimite;
-        } else {
-          return acc +  item.montoLimite;
-        }
-      }, 0);
-
-      setPresupuestoTotal(totalPlaneado);
-
-      const totalReal = data.reduce((acc, item) => {
-        if (item.tipoCategoria === "Ingreso") {
-          return acc + item.montoActual;
-        } else {
-          return acc - item.montoActual;
-        }
-      }, 0);
-
-      setBalanceReal( totalReal );
-
-    } catch (error) {
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  }, [usuarioId, mesSeleccionado, anioSeleccionado]);
-
   useFocusEffect(
     useCallback(() => {
       cargarDatos();
@@ -281,40 +243,14 @@ export default function PresupuestosScreen({ usuarioId }) {
 
   const handleSaveCategory = async (data) => {
     try {
-      const mes = mesSeleccionado;
-      const anio = anioSeleccionado;
-
-      if (isEditing) {
-        await presupuestoController.actualizarPresupuesto(data.id, data.limit);
-      } else {
-        
-        const nuevaCat = await categoriaController.crearCategoria(
-          usuarioId,
-          data.nombre,
-          data.tipo
-        );
-
-        await presupuestoController.crearPresupuesto(
-          usuarioId,
-          nuevaCat.id,
-          data.limit,
-          mes,
-          anio
-        );
-      }
-      setIsEditing(false);
-      setCategoryToEdit(null);
-      cargarDatos();
-    } catch (error) {
-      Alert.alert("Error", error.message);
-    }
-  };
-
-  const handleSaveCategory = async (data) => {
-    try {
+<<<<<<< Updated upstream
       const hoy = new Date();
       const mes = hoy.getMonth() + 1;
       const anio = hoy.getFullYear();
+=======
+      const mes = mesSeleccionado;
+      const anio = anioSeleccionado;
+>>>>>>> Stashed changes
 
       if (isEditing) {
         await presupuestoController.actualizarPresupuesto(data.id, data.limit);
