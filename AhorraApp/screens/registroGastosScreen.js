@@ -17,7 +17,7 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { ScrollView as GestureHandlerScrollView } from "react-native-gesture-handler";
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect } from "@react-navigation/native";
 import BottomSheet, { BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import {
   Menu,
@@ -28,7 +28,28 @@ import {
 
 import { TransaccionController } from "../controllers/transaccionController";
 import { CategoriaController } from "../controllers/categoriaController";
-import { PresupuestoController } from '../controllers/presupuestoController';
+import { PresupuestoController } from "../controllers/presupuestoController";
+
+import { SafeAreaView } from "react-native-safe-area-context";
+
+const transaccionController = new TransaccionController();
+const categoriaController = new CategoriaController();
+const presupuestoController = new PresupuestoController();
+
+const nombresMeses = [
+  "Ene",
+  "Feb",
+  "Mar",
+  "Abr",
+  "May",
+  "Jun",
+  "Jul",
+  "Ago",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dic",
+];
 
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -57,7 +78,7 @@ export default function RegistroGastosScreen({ usuarioId }) {
 
   const snapPoints = useMemo(() => ["65%"], []);
 
-  const cargarDatos = useCallback(async () => { 
+  const cargarDatos = useCallback(async () => {
     setLoading(true);
     try {
       const { ingresos, gastos } =
@@ -82,7 +103,7 @@ export default function RegistroGastosScreen({ usuarioId }) {
     cargarDatos();
 
     const onChange = () => {
-        cargarDatos();
+      cargarDatos();
     };
 
     transaccionController.addListener(onChange);
@@ -97,10 +118,10 @@ export default function RegistroGastosScreen({ usuarioId }) {
   }, [cargarDatos]);
 
   useFocusEffect(
-      useCallback(() => {
-        cargarDatos();
-      }, [cargarDatos])
-    );
+    useCallback(() => {
+      cargarDatos();
+    }, [cargarDatos])
+  );
 
   const aplicarFiltros = (lista) => {
     return lista.filter((item) => {
@@ -169,9 +190,111 @@ export default function RegistroGastosScreen({ usuarioId }) {
         );
 
         if (resultado && resultado.alerta) {
+          Alert.alert(" Aviso de Presupuesto", resultado.alerta);
+        }
+      }
+
+      setDescripcion("");
+      setMonto("");
+      setCatSeleccionada(null);
+      Keyboard.dismiss();
+      bottomSheetRef.current?.close();
+    } catch (error) {
+      Alert.alert("Error", error.message);
+    }
+  };
+
+  const handleEliminar = useCallback(() => {
+    if (!item) return;
+    const { id, tipo } = item;
+
+    setTimeout(() => {
+      if (tipo === "gasto") {
+        setGastos((gastosActuales) =>
+          gastosActuales.filter((gasto) => gasto.id !== id)
+        );
+      } else if (tipo === "ingreso") {
+        setIngreso((ingresosActuales) =>
+          ingresosActuales.filter((ingreso) => ingreso.id !== id)
+        );
+
+        if (resultado && resultado.alerta) {
              Alert.alert("⚠️ Aviso de Presupuesto", resultado.alerta);
         }
       }
+      setItem(null);
+    }, 300);
+  }, [item]);
+
+  const renderItem = ({ item }) => {
+    const fechaObj = new Date(item.fecha);
+    const dia = fechaObj.getDate();
+    const mesIndex = fechaObj.getMonth();
+    const anio = fechaObj.getFullYear();
+
+    const nombreMes = nombresMeses[mesIndex];
+
+    const etiquetaMes = !filtroMes ? `(${nombreMes})` : "";
+
+    return (
+      <View style={styles.itemContainer}>
+        <View style={styles.row}>
+          <View style={styles.infoContainer}>
+            <Text style={styles.descripcion}>{item.descripcion}</Text>
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <Text style={styles.categoria}>{item.nombreCategoria}</Text>
+
+              {!filtroMes && (
+                <Text
+                  style={{
+                    fontSize: 12,
+                    fontWeight: "bold",
+                    color: "#3B82F6",
+                    marginLeft: 5,
+                  }}
+                >
+                  {nombreMes}
+                </Text>
+              )}
+
+              <Text style={styles.categoria}>
+                {" • "}
+                {dia} {nombreMes} {anio}
+              </Text>
+            </View>
+          </View>
+          <View style={styles.rightContainer}>
+            <Text
+              style={[
+                styles.monto,
+                {
+                  color:
+                    item.tipoCategoria === "Ingreso" ? "#10B981" : "#EF4444",
+                },
+              ]}
+            >
+              ${parseFloat(item.monto).toFixed(2)}
+            </Text>
+            <Menu>
+              <MenuTrigger>
+                <Text style={styles.dotsTreeV}>⋮</Text>
+              </MenuTrigger>
+              <MenuOptions>
+                <MenuOption
+                  onSelect={() => abrirFormulario(item.tipoCategoria, item)}
+                >
+                  <Text style={{ color: "#3B82F6", padding: 10 }}>Editar</Text>
+                </MenuOption>
+                <MenuOption onSelect={() => handleEliminar(item.id)}>
+                  <Text style={{ color: "red", padding: 10 }}>Eliminar</Text>
+                </MenuOption>
+              </MenuOptions>
+            </Menu>
+          </View>
+        </View>
+      </View>
+    );
+  };
 
       setDescripcion("");
       setMonto("");

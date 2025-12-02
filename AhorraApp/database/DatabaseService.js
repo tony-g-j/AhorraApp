@@ -27,7 +27,6 @@ class DatabaseService {
         usuario_id INTEGER NOT NULL,
         nombre TEXT NOT NULL,
         tipo TEXT NOT NULL, 
-        icono TEXT,
         FOREIGN KEY (usuario_id) REFERENCES usuarios(usuario_id) ON DELETE CASCADE
       );
     `);
@@ -75,17 +74,27 @@ class DatabaseService {
       );
     `);
   }
-  
+
   async getUsuarios() {
     return await this.db.getAllAsync(
       "SELECT * FROM usuarios ORDER BY fecha_registro DESC"
     );
   }
 
-  async addUsuario(nombre, email, passwordHash, telefono = null, palabraSecreta) {
+  async addUsuario(
+    nombre,
+    email,
+    passwordHash,
+    telefono = null,
+    palabraSecreta
+  ) {
     const result = await this.db.runAsync(
-      'INSERT INTO usuarios (nombre, email, password_hash, telefono, palabra_secreta) VALUES (?, ?, ?, ?, ?)',
-      nombre, email, passwordHash, telefono, palabraSecreta
+      "INSERT INTO usuarios (nombre, email, password_hash, telefono, palabra_secreta) VALUES (?, ?, ?, ?, ?)",
+      nombre,
+      email,
+      passwordHash,
+      telefono,
+      palabraSecreta
     );
     return { id: result.lastInsertRowId, nombre, email };
   }
@@ -107,13 +116,6 @@ class DatabaseService {
     );
   }
 
-  async updatePassword(email, newPasswordHash) {
-    await this.db.runAsync(
-        'UPDATE usuarios SET password_hash = ? WHERE email = ?',
-        newPasswordHash, email
-    );
-  }
-
   async deleteUsuario(id) {
     await this.db.runAsync("DELETE FROM usuarios WHERE usuario_id = ?", id);
   }
@@ -125,21 +127,31 @@ class DatabaseService {
     );
   }
 
-  async addCategoria(usuarioId, nombre, tipo, icono) {
+  async getCategoriaPorNombre(usuarioId, nombre) {
+    const result = await this.db.getAllAsync(
+      `SELECT * FROM categorias WHERE usuario_id = ? AND LOWER(nombre) = LOWER(?)`,
+      usuarioId,
+      nombre.trim()
+    );
+    return result.length > 0 ? result[0] : null;
+  }
+
+  async addCategoria(usuarioId, nombre, tipo) {
     const result = await this.db.runAsync(
-      "INSERT INTO categorias (usuario_id, nombre, tipo, icono) VALUES (?, ?, ?, ?)",
+      "INSERT INTO categorias (usuario_id, nombre, tipo) VALUES (?, ?, ?)",
       usuarioId,
       nombre,
-      tipo,
-      icono
+      tipo
     );
     return { id: result.lastInsertRowId, usuarioId, nombre, tipo };
   }
 
-  async updateCategoria(id, nombre, tipo, icono) {
+  async updateCategoria(id, nombre, tipo) {
     await this.db.runAsync(
-      'UPDATE categorias SET nombre = ?, tipo = ?, icono = ? WHERE categoria_id = ?',
-      nombre, tipo, icono, id
+      "UPDATE categorias SET nombre = ?, tipo = ? WHERE categoria_id = ?",
+      nombre,
+      tipo,
+      id
     );
   }
 
@@ -170,7 +182,7 @@ class DatabaseService {
 
   async getTransacciones(usuarioId) {
     return await this.db.getAllAsync(
-      `SELECT t.*, c.nombre as categoria_nombre, c.icono as categoria_icono, c.tipo as categoria_tipo
+      `SELECT t.*, c.nombre as categoria_nombre, c.tipo as categoria_tipo
        FROM transacciones t 
        LEFT JOIN categorias c ON t.categoria_id = c.categoria_id 
        WHERE t.usuario_id = ? 
@@ -264,7 +276,7 @@ class DatabaseService {
 
   async getPresupuestos(usuarioId, mes, anio) {
     return await this.db.getAllAsync(
-      `SELECT p.*, c.nombre as categoria_nombre, c.icono as categoria_icono, c.tipo as categoria_tipo
+      `SELECT p.*, c.nombre as categoria_nombre, c.tipo as categoria_tipo
        FROM presupuestos p 
        JOIN categorias c ON p.categoria_id = c.categoria_id 
        WHERE p.usuario_id = ? AND p.mes = ? AND p.anio = ?`,
@@ -293,13 +305,6 @@ class DatabaseService {
       "UPDATE presupuestos SET monto_limite = ? WHERE presupuesto_id = ?",
       montoLimite,
       id
-    );
-  }
-
-  async updatePresupuesto(id, montoLimite) {
-    await this.db.runAsync(
-      'UPDATE presupuestos SET monto_limite = ? WHERE presupuesto_id = ?',
-      montoLimite, id
     );
   }
 
@@ -349,7 +354,7 @@ class DatabaseService {
 
   async getRecurrentes(usuarioId) {
     return await this.db.getAllAsync(
-      `SELECT r.*, c.nombre as categoria_nombre, c.icono as categoria_icono
+      `SELECT r.*, c.nombre as categoria_nombre
        FROM recurrentes r 
        JOIN categorias c ON r.categoria_id = c.categoria_id 
        WHERE r.usuario_id = ?`,

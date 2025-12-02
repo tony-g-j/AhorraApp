@@ -11,7 +11,7 @@ export class CategoriaController {
       const data = await DatabaseService.getCategorias(usuarioId);
       return data.map(
         (c) =>
-          new Categoria(c.categoria_id, c.usuario_id, c.nombre, c.tipo, c.icono)
+          new Categoria(c.categoria_id, c.usuario_id, c.nombre, c.tipo)
       );
     } catch (error) {
       console.error("Error al obtener categorías:", error);
@@ -19,19 +19,28 @@ export class CategoriaController {
     }
   }
 
-  async crearCategoria(usuarioId, nombre, tipo, icono = "help-circle") {
+  async crearCategoria(usuarioId, nombre, tipo) {
     try {
       Categoria.validar(nombre, tipo);
+
+      const existente = await DatabaseService.getCategoriaPorNombre(usuarioId, nombre);
+      
+      if (existente) {
+        return { 
+            id: existente.categoria_id, 
+            nombre: existente.nombre, 
+            tipo: existente.tipo, 
+        };
+      }
 
       const result = await DatabaseService.addCategoria(
         usuarioId,
         nombre.trim(),
         tipo,
-        icono
       );
 
       this.notifyListeners();
-      return result;
+      return { id: result.lastInsertRowId || result, nombre, tipo};
     } catch (error) {
       console.error("Error al crear categoría:", error);
       throw error;
