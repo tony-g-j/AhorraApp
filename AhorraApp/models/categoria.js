@@ -1,10 +1,9 @@
 export default class Categoria {
-    constructor(id, usuarioId, nombre, tipo, icono) {
+    constructor(id, usuarioId, nombre, tipo) {
         this.id = id;
         this.usuarioId = usuarioId;
         this.nombre = nombre;
         this.tipo = tipo;
-        this.icono = icono;
     }
 
     static validar(nombre, tipo){x

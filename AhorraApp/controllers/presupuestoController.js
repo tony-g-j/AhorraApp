@@ -7,6 +7,11 @@ export class PresupuestoController {
   }
 
   async obtenerPresupuestos(usuarioId, mes, anio) {
+    
+    if (!usuarioId || !mes || !anio) {
+    console.warn("obtenerPresupuestos abortado: Faltan datos", { usuarioId, mes, anio });
+    return [];
+  }
     try {
       const data = await DatabaseService.getPresupuestos(usuarioId, mes, anio);
 
@@ -33,6 +38,14 @@ export class PresupuestoController {
     try {
       Presupuesto.validar(montoLimite, mes, anio);
 
+      const presupuestosExistentes = await this.obtenerPresupuestos(usuarioId, mes, anio);
+
+      const duplicado = presupuestosExistentes.find(p => p.categoriaId === categoriaId);
+
+      if (duplicado) {
+        throw new Error(`Ya existe un presupuesto para la categoría "${duplicado.nombreCategoria}" en este mes.`);
+      }
+      
       await DatabaseService.addPresupuesto(
         usuarioId,
         categoriaId,

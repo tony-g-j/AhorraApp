@@ -11,6 +11,8 @@ import {
   Alert,
   ScrollView,
 } from "react-native";
+import { ScrollView as GestureHandlerScrollView } from "react-native-gesture-handler";
+import { useFocusEffect } from "@react-navigation/native";
 import BottomSheet, { BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import {
   Menu,
@@ -20,14 +22,29 @@ import {
   renderers,
 } from "react-native-popup-menu";
 
-const GASTOS_INICIALES = [
-  { id: "1", descripcion: "Café de la mañana", monto: 45.5 },
-  { id: "2", descripcion: "Transporte (Metro)", monto: 10.0 },
-  { id: "3", descripcion: "Comida", monto: 120.0 },
-];
-const Ingresos_I = [
-  { id: "1", descripcion: "Transferencia ", monto: 500 },
-  { id: "2", descripcion: "Aguinaldo", monto: 2500 },
+import { TransaccionController } from "../controllers/transaccionController";
+import { CategoriaController } from "../controllers/categoriaController";
+import { PresupuestoController } from "../controllers/presupuestoController";
+
+import { SafeAreaView } from "react-native-safe-area-context";
+
+const transaccionController = new TransaccionController();
+const categoriaController = new CategoriaController();
+const presupuestoController = new PresupuestoController();
+
+const nombresMeses = [
+  "Ene",
+  "Feb",
+  "Mar",
+  "Abr",
+  "May",
+  "Jun",
+  "Jul",
+  "Ago",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dic",
 ];
 
 export default function RegistroGastosScreen() {
@@ -45,57 +62,71 @@ export default function RegistroGastosScreen() {
   const [montoM, setMontoM] = useState("");
 
   const bottomSheetRef = useRef(null);
-  const bottomSheetGastosRef = useRef(null);
-  const bottomSheetIngresosRef = useRef(null);
-  const bottomSheetModRef = useRef(null);
-  const snapPoints = useMemo(() => ["50%"], []);
 
-  const handleOpenSheet = () => {
-    bottomSheetRef.current?.expand();
-  };
+  const snapPoints = useMemo(() => ["65%"], []);
 
-  const handledOpenIngresoSheet = () => {
-    bottomSheetRef.current.close();
-    bottomSheetIngresosRef.current.expand();
-  };
-  const handledOpenGastosSheet = () => {
-    bottomSheetRef.current.close();
-    bottomSheetGastosRef.current.expand();
-  };
-  const handledOpenModSheet = () => {
-    if (!item) return;
-    setDescripcionM(item.descripcion);
-    setMontoM(item.monto.toString());
-    bottomSheetModRef.current?.expand();
-  };
+  const cargarDatos = useCallback(async () => {
+    setLoading(true);
+    try {
+      const { ingresos, gastos } =
+        await transaccionController.obtenerTransaccionesClasificadas(
+          USUARIO_ID
+        );
+      setRawIngresos(ingresos);
+      setRawGastos(gastos);
 
-  const handleGuardarGasto = useCallback(() => {
-    const montoNum = parseFloat(montoG);
-    if (!descripcionG || !montoNum || montoNum <= 0) {
-      Alert.alert(
-        "Error",
-        "Por favor, ingresa una descripción y un monto válido."
+      const listaCategorias = await categoriaController.obtenerCategorias(
+        USUARIO_ID
       );
-      return;
+      setCategorias(listaCategorias);
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
     }
+  }, [USUARIO_ID]);
 
-    const nuevoGasto = {
-      id: Date.now().toString(),
-      descripcion: descripcionG,
-      monto: montoNum,
+  useEffect(() => {
+    cargarDatos();
+
+    const onChange = () => {
+      cargarDatos();
     };
 
-    Keyboard.dismiss();
-    setTimeout(() => bottomSheetGastosRef.current?.close(), 300);
-    
+    transaccionController.addListener(onChange);
+    categoriaController.addListener(onChange);
+    presupuestoController.addListener(onChange);
 
-    setTimeout(() => {
-      setGastos((gastosActuales) => [nuevoGasto, ...gastosActuales]);
+    return () => {
+      transaccionController.removeListeners(onChange);
+      categoriaController.removeListeners(onChange);
+      presupuestoController.removeListeners(onChange);
+    };
+  }, [cargarDatos]);
 
-      setDescripcionG("");
-      setMontoG("");
-    }, 300);
-  }, [descripcionG, montoG]);
+  useFocusEffect(
+    useCallback(() => {
+      cargarDatos();
+    }, [cargarDatos])
+  );
+
+  const aplicarFiltros = (lista) => {
+    return lista.filter((item) => {
+      if (filtroCategoria && item.categoriaId !== filtroCategoria) return false;
+
+      if (filtroMes) {
+        const fechaItem = new Date(item.fecha);
+        const hoy = new Date();
+        if (
+          fechaItem.getMonth() !== hoy.getMonth() ||
+          fechaItem.getFullYear() !== hoy.getFullYear()
+        ) {
+          return false;
+        }
+      }
+      return true;
+    });
+  };
 
   const handleGuardarIngreso = useCallback(() => {
     const montoNum = parseFloat(montoI);
@@ -131,39 +162,40 @@ export default function RegistroGastosScreen() {
       return;
     }
 
-    const { id, tipo } = item;
-
-    Keyboard.dismiss();
-    setTimeout(() => {bottomSheetModRef.current?.close()}, 300)
-    
-
-    setTimeout(() => {
-      if (tipo === "gasto") {
-        setGastos((gastosActuales) =>
-          gastosActuales.map((gasto) =>
-            gasto.id === id
-              ? { ...gasto, descripcion: descripcionM.trim(), monto: montoNum }
-              : gasto
-          )
+    try {
+      if (modoEdicion) {
+        await transaccionController.actualizarTransaccion(
+          idEdicion,
+          catSeleccionada,
+          monto,
+          new Date().toISOString(),
+          descripcion
         );
-      } else if (tipo === "ingreso") {
-        setIngreso((ingresosActuales) =>
-          ingresosActuales.map((ingreso) =>
-            ingreso.id === id
-              ? {
-                  ...ingreso,
-                  descripcion: descripcionM.trim(),
-                  monto: montoNum,
-                }
-              : ingreso
-          )
+        Alert.alert("Éxito", "Transacción actualizada");
+      } else {
+        const resultado = await transaccionController.agregarTransaccion(
+          USUARIO_ID,
+          catSeleccionada,
+          monto,
+          new Date().toISOString(),
+          descripcion,
+          false
         );
+
+        if (resultado && resultado.alerta) {
+          Alert.alert("⚠️ Aviso de Presupuesto", resultado.alerta);
+        }
       }
-      setItem(null);
-      setDescripcionM("");
-      setMontoM("");
-    }, 300);
-  }, [item, descripcionM, montoM]);
+
+      setDescripcion("");
+      setMonto("");
+      setCatSeleccionada(null);
+      Keyboard.dismiss();
+      bottomSheetRef.current?.close();
+    } catch (error) {
+      Alert.alert("Error", error.message);
+    }
+  };
 
   const handleEliminar = useCallback(() => {
     if (!item) return;
@@ -183,37 +215,75 @@ export default function RegistroGastosScreen() {
     }, 300);
   }, [item]);
 
-  const renderGasto = ({ item }) => (
-    <View style={styles.gastoItem}>
-      <Text style={styles.gastoDescripcion}>{item.descripcion}</Text>
-      <Text style={styles.gastoMonto}>${item.monto.toFixed(2)}</Text>
-      <Menu style={styles.Menu} renderer={renderers.Popover}>
-        <MenuTrigger style={styles.trigger}>
-          <Text style={styles.dotsTreeV}>&#x22EE;</Text>
-        </MenuTrigger>
-        <MenuOptions optionsContainerStyle={styles.MenuOpsContainer}>
-          <MenuOption
-            style={styles.option}
-            onSelect={() => {
-              setItem({ ...item, tipo: "gasto" });
-              handledOpenModSheet();
-            }}
-          >
-            <Text style={styles.opText}> Modificar </Text>
-          </MenuOption>
-          <MenuOption
-            style={styles.option}
-            onSelect={() => {
-              setItem({ ...item, tipo: "gasto" });
-              handleEliminar();
-            }}
-          >
-            <Text style={styles.opText}> Eliminar </Text>
-          </MenuOption>
-        </MenuOptions>
-      </Menu>
-    </View>
-  );
+  const renderItem = ({ item }) => {
+    const fechaObj = new Date(item.fecha);
+    const dia = fechaObj.getDate();
+    const mesIndex = fechaObj.getMonth();
+    const anio = fechaObj.getFullYear();
+
+    const nombreMes = nombresMeses[mesIndex];
+
+    const etiquetaMes = !filtroMes ? `(${nombreMes})` : "";
+
+    return (
+      <View style={styles.itemContainer}>
+        <View style={styles.row}>
+          <View style={styles.infoContainer}>
+            <Text style={styles.descripcion}>{item.descripcion}</Text>
+            <View style={{ flexDirection: "row", alignItems: "center" }}>
+              <Text style={styles.categoria}>{item.nombreCategoria}</Text>
+
+              {!filtroMes && (
+                <Text
+                  style={{
+                    fontSize: 12,
+                    fontWeight: "bold",
+                    color: "#3B82F6",
+                    marginLeft: 5,
+                  }}
+                >
+                  {nombreMes}
+                </Text>
+              )}
+
+              <Text style={styles.categoria}>
+                {" • "}
+                {dia} {nombreMes} {anio}
+              </Text>
+            </View>
+          </View>
+          <View style={styles.rightContainer}>
+            <Text
+              style={[
+                styles.monto,
+                {
+                  color:
+                    item.tipoCategoria === "Ingreso" ? "#10B981" : "#EF4444",
+                },
+              ]}
+            >
+              ${parseFloat(item.monto).toFixed(2)}
+            </Text>
+            <Menu>
+              <MenuTrigger>
+                <Text style={styles.dotsTreeV}>⋮</Text>
+              </MenuTrigger>
+              <MenuOptions>
+                <MenuOption
+                  onSelect={() => abrirFormulario(item.tipoCategoria, item)}
+                >
+                  <Text style={{ color: "#3B82F6", padding: 10 }}>Editar</Text>
+                </MenuOption>
+                <MenuOption onSelect={() => handleEliminar(item.id)}>
+                  <Text style={{ color: "red", padding: 10 }}>Eliminar</Text>
+                </MenuOption>
+              </MenuOptions>
+            </Menu>
+          </View>
+        </View>
+      </View>
+    );
+  };
 
   const renderIngreso = ({ item }) => (
     <View style={styles.ingresoItem}>

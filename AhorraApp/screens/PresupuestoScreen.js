@@ -156,9 +156,80 @@ export default function PresupuestosScreen() {
   const snapPoints = useMemo(() => ["50%"], []);
   const snapPointsForm = useMemo(() => ["60%"], []);
 
-  const currentBudget = parseFloat(presupuestoMensual.replace("$", "")) || 0;
-  const totalSpent = categories.reduce((acc, cat) => acc + cat.spent, 0);
-  const remainingBudget = currentBudget - totalSpent;
+  const cargarDatos = useCallback(async () => {
+    if (!usuarioId) return;
+    setLoading(true);
+    try {
+      const data = await presupuestoController.obtenerPresupuestos(
+        usuarioId,
+        mesSeleccionado,
+        anioSeleccionado
+      );
+      setPresupuestos(data);
+
+      const totalPlaneado = data.reduce((acc, item) => {
+        if (item.tipoCategoria === "Ingreso") {
+          return acc + item.montoLimite;
+        } else {
+          return acc +  item.montoLimite;
+        }
+      }, 0);
+
+      setPresupuestoTotal(totalPlaneado);
+
+      const totalReal = data.reduce((acc, item) => {
+        if (item.tipoCategoria === "Ingreso") {
+          return acc + item.montoActual;
+        } else {
+          return acc - item.montoActual;
+        }
+      }, 0);
+
+      setBalanceReal( totalReal );
+
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(false);
+    }
+  }, [usuarioId, mesSeleccionado, anioSeleccionado]);
+
+  useFocusEffect(
+    useCallback(() => {
+      cargarDatos();
+    }, [cargarDatos])
+  );
+
+  const handleSaveCategory = async (data) => {
+    try {
+      const mes = mesSeleccionado;
+      const anio = anioSeleccionado;
+
+      if (isEditing) {
+        await presupuestoController.actualizarPresupuesto(data.id, data.limit);
+      } else {
+        
+        const nuevaCat = await categoriaController.crearCategoria(
+          usuarioId,
+          data.nombre,
+          data.tipo
+        );
+
+        await presupuestoController.crearPresupuesto(
+          usuarioId,
+          nuevaCat.id,
+          data.limit,
+          mes,
+          anio
+        );
+      }
+      setIsEditing(false);
+      setCategoryToEdit(null);
+      cargarDatos();
+    } catch (error) {
+      Alert.alert("Error", error.message);
+    }
+  };
 
   const handleOpenSheet = useCallback(() => {
     bottomSheetRef.current?.expand();
