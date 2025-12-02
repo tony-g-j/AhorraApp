@@ -1,4 +1,4 @@
-import React, { useRef, useMemo, useCallback } from "react";
+import React, { useRef, useMemo, useCallback, useState } from "react";
 import {
   View,
   Text,
@@ -6,12 +6,17 @@ import {
   Dimensions,
   StyleSheet,
   TouchableOpacity,
+  ActivityIndicator,
 } from "react-native";
 import { LineChart, PieChart } from "react-native-chart-kit";
 import { SafeAreaView } from "react-native-safe-area-context";
 import BottomSheet, { BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { MaterialIcons} from '@expo/vector-icons';
+import { MaterialIcons } from "@expo/vector-icons";
+import { useFocusEffect } from "@react-navigation/native";
+
+import { TransaccionController } from "../controllers/transaccionController";
+const transaccionController = new TransaccionController();
 
 const screenWidth = Dimensions.get("window").width;
 const screenHeight = Dimensions.get("window").height;
@@ -31,70 +36,17 @@ const NEW_COLORS = {
   borderLight: "#e0e0e0",
 };
 
-const ingresosPorCategoria = [
-  {
-    name: "Salario",
-    amount: 2500,
-    color: NEW_COLORS.primaryGreen,
-    legendFontColor: NEW_COLORS.darkText,
-    legendFontSize: 16,
-  },
-  {
-    name: "Ventas",
-    amount: 850,
-    color: NEW_COLORS.secondaryGreen,
-    legendFontColor: NEW_COLORS.darkText,
-    legendFontSize: 16,
-  },
-  {
-    name: "Ingresos Extra",
-    amount: 300,
-    color: "#90EE90",
-    legendFontColor: NEW_COLORS.darkText,
-    legendFontSize: 16,
-  },
+const CHART_COLORS = [
+  "#FF6384",
+  "#36A2EB",
+  "#FFCE56",
+  "#4BC0C0",
+  "#9966FF",
+  "#FF9F40",
+  "#C9CBCF",
+  "#FFCD56",
+  "#4D5360",
 ];
-
-const egresosPorCategoria = [
-  {
-    name: "Alimentación",
-    amount: 1200,
-    color: NEW_COLORS.primaryRed,
-    legendFontColor: NEW_COLORS.darkText,
-    legendFontSize: 16,
-  },
-  {
-    name: "Transporte",
-    amount: 600,
-    color: NEW_COLORS.secondaryRed,
-    legendFontColor: NEW_COLORS.darkText,
-    legendFontSize: 16,
-  },
-  {
-    name: "Entretenimiento",
-    amount: 400,
-    color: "#F08080",
-    legendFontColor: NEW_COLORS.darkText,
-    legendFontSize: 16,
-  },
-];
-
-const dataMensual = {
-  labels: ["Ene", "Feb", "Mar", "Abr", "May", "Jun"],
-  datasets: [
-    {
-      data: [2500, 2300, 2800, 2600, 3000, 2900],
-      color: () => NEW_COLORS.primaryGreen,
-      strokeWidth: 3,
-    },
-    {
-      data: [1800, 1900, 2100, 2000, 2200, 2400],
-      color: () => NEW_COLORS.primaryRed,
-      strokeWidth: 3,
-    },
-  ],
-  legend: ["Ingresos", "Egresos"],
-};
 
 const chartConfig = {
   backgroundColor: NEW_COLORS.cardBackground,
@@ -118,9 +70,9 @@ const chartConfig = {
 };
 
 const PieChartSheet = ({ sheetRef, title, data }) => {
-  const snapPoints = useMemo(() => [screenHeight * 0.85], []);
-
-  const totalAmount = data.reduce((sum, item) => sum + item.amount, 0);
+    const snapPoints = useMemo(() => ['1%', screenHeight * 0.8], []);
+    
+    const totalAmount = data.reduce((sum, item) => sum + item.amount, 0);
 
   const renderManualLegend = () => (
     <View style={sheetStyles.manualLegendContainer}>
@@ -135,7 +87,7 @@ const PieChartSheet = ({ sheetRef, title, data }) => {
             <View style={sheetStyles.legendTextContainer}>
               <Text style={sheetStyles.legendCategory}>{item.name}</Text>
               <Text style={sheetStyles.legendPercentage}>
-                {percentage}% ({item.amount})
+                {percentage}% (${item.amount.toFixed(2)})
               </Text>
             </View>
           </View>
@@ -156,32 +108,41 @@ const PieChartSheet = ({ sheetRef, title, data }) => {
       <BottomSheetScrollView contentContainerStyle={sheetStyles.content}>
         <Text style={sheetStyles.title}>{title}</Text>
 
-        <View style={sheetStyles.chartContainer}>
-          <PieChart
-            data={data}
-            width={screenWidth}
-            height={240}
-            chartConfig={chartConfig}
-            accessor="amount"
-            backgroundColor="transparent"
-            paddingLeft={screenWidth / 4}
-            hasLegend={false}
-            center={[0, 0]}
-            absolute={false}
-          />
-        </View>
+        {data.length > 0 ? (
+          <>
+            <View style={sheetStyles.chartContainer}>
+              <PieChart
+                data={data}
+                width={screenWidth}
+                height={240}
+                chartConfig={chartConfig}
+                accessor="amount"
+                backgroundColor="transparent"
+                paddingLeft={screenWidth / 4}
+                hasLegend={false}
+                center={[0, 0]}
+                absolute={false}
+              />
+            </View>
 
-        <View style={sheetStyles.legendSection}>
-          <Text style={sheetStyles.sectionHeader}>Detalle por Categoría:</Text>
-          {renderManualLegend()}
-        </View>
+            <View style={sheetStyles.legendSection}>
+              <Text style={sheetStyles.sectionHeader}>
+                Detalle por Categoría:
+              </Text>
+              {renderManualLegend()}
+            </View>
+          </>
+        ) : (
+          <Text style={{ marginVertical: 20, color: "#999" }}>
+            No hay datos registrados para esta gráfica.
+          </Text>
+        )}
 
         <View style={sheetStyles.infoCard}>
           <Text style={sheetStyles.infoTitle}>Análisis de Distribución</Text>
           <Text style={sheetStyles.description}>
-            Esta gráfica muestra la distribución porcentual de tus fondos en las
-            distintas categorías. El tamaño de cada sección representa su peso
-            relativo en el total.
+            Esta gráfica muestra la distribución de tus fondos en las distintas
+            categorías.
           </Text>
         </View>
       </BottomSheetScrollView>
@@ -192,15 +153,16 @@ const PieChartSheet = ({ sheetRef, title, data }) => {
 const LineChartSheet = ({ sheetRef, title, data, customConfig = {} }) => {
   const snapPoints = useMemo(() => ["1%", screenHeight * 0.8], []);
 
+  const hasData =
+    data?.datasets?.length > 0 &&
+    (data.datasets[0]?.data?.some((v) => v > 0) ||
+     data.datasets[1]?.data?.some((v) => v > 0));
+
   const currentChartConfig = {
     ...chartConfig,
     ...customConfig,
-    fillShadowGradient:
-      data.datasets && data.datasets.length === 1
-        ? data.datasets[0].color()()
-        : "rgba(0,0,0,0)",
-    fillShadowGradientOpacity:
-      data.datasets && data.datasets.length === 1 ? 0.1 : 0,
+    fillShadowGradient: "rgba(0,0,0,0)",
+    fillShadowGradientOpacity: 0,
   };
 
   return (
@@ -215,24 +177,28 @@ const LineChartSheet = ({ sheetRef, title, data, customConfig = {} }) => {
       <BottomSheetScrollView contentContainerStyle={sheetStyles.content}>
         <Text style={sheetStyles.title}>{title}</Text>
 
-        <View style={styles.chartWrapper}>
-          <LineChart
-            data={data}
-            width={screenWidth * 0.9 - 20}
-            height={300}
-            chartConfig={currentChartConfig}
-            bezier
-            style={sheetStyles.chartStyle}
-            segments={data.labels.length > 4 ? 4 : data.labels.length}
-          />
-        </View>
+        {hasData ? (
+          <View style={styles.chartWrapper}>
+            <LineChart
+              data={data}
+              width={screenWidth * 0.9 - 20}
+              height={300}
+              chartConfig={currentChartConfig}
+              bezier
+              style={sheetStyles.chartStyle}
+            />
+          </View>
+        ) : (
+            <Text style={{ marginVertical: 20, color: "#999" }}>
+            No hay suficientes datos históricos.
+          </Text>
+        )}
 
         <View style={sheetStyles.infoCard}>
           <Text style={sheetStyles.infoTitle}>Análisis de Tendencia</Text>
           <Text style={sheetStyles.description}>
-            Esta gráfica detalla la tendencia de tus movimientos a través de los
-            meses, ayudando a identificar estacionalidad y variaciones
-            históricas.
+            Comparativa de tus Ingresos (Verde) vs Egresos (Rojo) en los últimos
+            6 meses.
           </Text>
         </View>
       </BottomSheetScrollView>
@@ -240,15 +206,25 @@ const LineChartSheet = ({ sheetRef, title, data, customConfig = {} }) => {
   );
 };
 
-export default function GraficaScreen() {
+export default function GraficaScreen({ usuarioId }) {
+  const [loading, setLoading] = useState(true);
+  const [ingresosData, setIngresosData] = useState([]);
+  const [egresosData, setEgresosData] = useState([]);
+  const [tendenciaData, setTendenciaData] = useState({
+    labels: [],
+    datasets: [],
+    legend: ["Ingresos", "Egresos"],
+  });
+
   const sheetIngresosRef = useRef(null);
   const sheetEgresosRef = useRef(null);
   const sheetTendenciaRef = useRef(null);
 
-  const allRefs = useMemo(
-    () => [sheetIngresosRef, sheetEgresosRef, sheetTendenciaRef],
-    []
-  );
+    const allRefs = useMemo(() => [
+        sheetIngresosRef,
+        sheetEgresosRef,
+        sheetTendenciaRef,
+    ], []);
 
   const openSheet = useCallback(
     (refToOpen) => {
@@ -257,143 +233,229 @@ export default function GraficaScreen() {
           ref.current.close();
         }
       });
-
       refToOpen.current?.snapToIndex(1);
     },
     [allRefs]
   );
 
-    return (
-        <GestureHandlerRootView style={{ flex: 1 }}>
-            <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+  const procesarDatos = async () => {
+    if (!usuarioId) return;
+    setLoading(true);
+    try {
+      const transacciones = await transaccionController.obtenerTransacciones(
+        usuarioId
+      );
+
+      const mapIngresos = {};
+      const mapGastos = {};
+
+      const hoy = new Date();
+      const ultimos6Meses = [];
+      for (let i = 5; i >= 0; i--) {
+        const d = new Date(hoy.getFullYear(), hoy.getMonth() - i, 1);
+        ultimos6Meses.push({
+          mesIndex: d.getMonth(),
+          anio: d.getFullYear(),
+          label: d.toLocaleString("es-ES", { month: "short" }),
+          ingresos: 0,
+          gastos: 0,
+        });
+      }
+
+      transacciones.forEach((t) => {
+        const monto = parseFloat(t.monto);
+        const fechaT = new Date(t.fecha);
+
+        const nombreCat = t.nombreCategoria || "Otros";
+        if (t.tipoCategoria === "Ingreso") {
+          mapIngresos[nombreCat] = (mapIngresos[nombreCat] || 0) + monto;
+        } else {
+          mapGastos[nombreCat] = (mapGastos[nombreCat] || 0) + monto;
+        }
+
+        const mesBin = ultimos6Meses.find(
+          (m) =>
+            m.mesIndex === fechaT.getMonth() && m.anio === fechaT.getFullYear()
+        );
+        if (mesBin) {
+          if (t.tipoCategoria === "Ingreso") mesBin.ingresos += monto;
+          else mesBin.gastos += monto;
+        }
+      });
+
+      const formatPieData = (map) =>
+        Object.keys(map).map((key, index) => ({
+          name: key,
+          amount: map[key],
+          color: CHART_COLORS[index % CHART_COLORS.length],
+          legendFontColor: NEW_COLORS.darkText,
+          legendFontSize: 15,
+        }));
+
+      setIngresosData(formatPieData(mapIngresos));
+      setEgresosData(formatPieData(mapGastos));
+
+      setTendenciaData({
+        labels: ultimos6Meses.map((m) => m.label),
+        datasets: [
+          {
+            data: ultimos6Meses.map((m) => m.ingresos),
+            color: (opacity = 1) => NEW_COLORS.primaryGreen,
+            strokeWidth: 3,
+          },
+          {
+            data: ultimos6Meses.map((m) => m.gastos),
+            color: (opacity = 1) => NEW_COLORS.primaryRed,
+            strokeWidth: 3,
+          },
+        ],
+        legend: ["Ingresos", "Egresos"],
+      });
+    } catch (error) {
+      console.error("Error procesando gráficas:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      procesarDatos();
+    }, [usuarioId])
+  );
+
+  return (
+    <GestureHandlerRootView style={{ flex: 1, backgroundColor: "#bff0ea" }}>
+      <SafeAreaView style={{ flex: 1 }}>
+        <ScrollView
+          style={styles.container}
+          showsVerticalScrollIndicator={false}
+        >
+          <Text style={styles.title}>Estadísticas</Text>
+
+          {loading ? (
+            <ActivityIndicator size="large" color={NEW_COLORS.darkText} />
+          ) : (
             <View style={styles.graphButtonsContainer}>
+              <TouchableOpacity
+                style={[styles.graphButton, styles.greenButton]}
+                onPress={() => openSheet(sheetIngresosRef)}
+              >
+                <MaterialIcons name="pie-chart" size={26} color="#1A7F4B" />
+                <Text style={[styles.graphButtonText, { color: "#1A7F4B" }]}>
+                  Ver Ingresos
+                </Text>
+              </TouchableOpacity>
 
-                <TouchableOpacity 
-                    style={[styles.graphButton, styles.greenButton]}
-                    onPress={() => openSheet(sheetIngresosRef)}
-                >
-                    <MaterialIcons name="pie-chart" size={26} color="#1A7F4B" />
-                    <Text style={[styles.graphButtonText, { color: "#1A7F4B" }]}>
-                        Ver Ingresos
-                    </Text>
-                </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.graphButton, styles.redButton]}
+                onPress={() => openSheet(sheetEgresosRef)}
+              >
+                <MaterialIcons
+                  name="stacked-bar-chart"
+                  size={26}
+                  color="#C0392B"
+                />
+                <Text style={[styles.graphButtonText, { color: "#C0392B" }]}>
+                  Ver Egresos
+                </Text>
+              </TouchableOpacity>
 
-                <TouchableOpacity 
-                    style={[styles.graphButton, styles.redButton]}
-                    onPress={() => openSheet(sheetEgresosRef)}
-                >
-                    <MaterialIcons name="stacked-bar-chart" size={26} color="#C0392B" />
-                    <Text style={[styles.graphButtonText, { color: "#C0392B" }]}>
-                        Ver Egresos
-                    </Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity 
-                    style={[styles.graphButton, styles.purpleButton]}
-                    onPress={() => openSheet(sheetTendenciaRef)}
-                >
-                    <MaterialIcons name="show-chart" size={26} color="#6C3BCE" />
-                    <Text style={[styles.graphButtonText, { color: "#6C3BCE" }]}>
-                        Ver Tendencia
-                    </Text>
-                </TouchableOpacity>
-
+              <TouchableOpacity
+                style={[styles.graphButton, styles.purpleButton]}
+                onPress={() => openSheet(sheetTendenciaRef)}
+              >
+                <MaterialIcons name="show-chart" size={26} color="#6C3BCE" />
+                <Text style={[styles.graphButtonText, { color: "#6C3BCE" }]}>
+                  Ver Tendencia
+                </Text>
+              </TouchableOpacity>
             </View>
-            </ScrollView>
+          )}
+        </ScrollView>
 
-      <PieChartSheet
-        sheetRef={sheetIngresosRef}
-        title="Ingresos por Categoría"
-        data={ingresosPorCategoria}
-      />
+        <PieChartSheet
+          sheetRef={sheetIngresosRef}
+          title="Ingresos por Categoría"
+          data={ingresosData}
+        />
 
-      <PieChartSheet
-        sheetRef={sheetEgresosRef}
-        title="Egresos por Categoría"
-        data={egresosPorCategoria}
-      />
+        <PieChartSheet
+          sheetRef={sheetEgresosRef}
+          title="Egresos por Categoría"
+          data={egresosData}
+        />
 
-      <LineChartSheet
-        sheetRef={sheetTendenciaRef}
-        title="Tendencia Mensual de Ingresos y Egresos"
-        data={dataMensual}
-      />
+        <LineChartSheet
+          sheetRef={sheetTendenciaRef}
+          title="Tendencia Mensual"
+          data={tendenciaData}
+        />
+      </SafeAreaView>
     </GestureHandlerRootView>
   );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: NEW_COLORS.backgroundLight,
-        padding: 10,
-    },
-    content: {
-        alignItems: "center",
-        paddingBottom: 40,
-    },
-    centerWrapper: {
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center", 
-    },
-    title: {
-        fontSize: 28,
-        fontWeight: "800",
-        textAlign: "center",
-        marginVertical: 20,
-        color: NEW_COLORS.darkText,
-    },
-    chartWrapper: {
-        borderRadius: 12,
-        overflow: 'hidden',
-        marginVertical: 10,
-        backgroundColor: NEW_COLORS.cardBackground,
-    },
-    button: {
-        height: 120,
-        justifyContent: 'center',
-    },
-    greenButton: {
-        borderLeftWidth: 6,
-        borderLeftColor: "#1A7F4B",
-        },
-    redButton: {
-        borderLeftWidth: 6,
-        borderLeftColor: "#C0392B",
-        },
-    purpleButton: {
-        borderLeftWidth: 6,
-        borderLeftColor: "#6C3BCE",
-},
-    graphButtonsContainer: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        marginTop: 15,
-        marginBottom: 25,
-    },
-
-    graphButton: {
-        flex: 1,
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "center",
-        backgroundColor: "#ffffff",
-        paddingVertical: 14,
-        marginHorizontal: 5,
-        borderRadius: 12,
-        elevation: 6,
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 3 },
-        shadowOpacity: 0.25,
-        shadowRadius: 4,
-    },
-
-    graphButtonText: {
-        fontSize: 15,
-        fontWeight: "700",
-        marginLeft: 8,
-    },
+  container: {
+    flex: 1,
+    backgroundColor: NEW_COLORS.backgroundLight,
+    padding: 10,
+  },
+  title: {
+    fontSize: 28,
+    fontWeight: "800",
+    textAlign: "center",
+    marginVertical: 20,
+    color: NEW_COLORS.darkText,
+  },
+  chartWrapper: {
+    borderRadius: 12,
+    overflow: "hidden",
+    marginVertical: 10,
+    backgroundColor: NEW_COLORS.cardBackground,
+    padding: 10,
+    alignItems: "center"
+  },
+  greenButton: {
+    borderLeftWidth: 6,
+    borderLeftColor: "#1A7F4B",
+  },
+  redButton: {
+    borderLeftWidth: 6,
+    borderLeftColor: "#C0392B",
+  },
+  purpleButton: {
+    borderLeftWidth: 6,
+    borderLeftColor: "#6C3BCE",
+  },
+  graphButtonsContainer: {
+    flex: 1,
+    flexDirection: "column",
+    gap: 20,
+    marginTop: 15,
+    marginBottom: 25,
+  },
+  graphButton: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#ffffff",
+    paddingVertical: 14,
+    marginHorizontal: 5,
+    borderRadius: 12,
+    elevation: 6,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+  },
+  graphButtonText: {
+    fontSize: 15,
+    fontWeight: "700",
+    marginLeft: 8,
+  },
 });
 
 const sheetStyles = StyleSheet.create({
@@ -422,63 +484,6 @@ const sheetStyles = StyleSheet.create({
     color: NEW_COLORS.darkText,
     textAlign: "center",
     paddingTop: 10,
-  },
-  chartAndInfoRow: {
-    flexDirection: "row",
-    width: "100%",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 20,
-  },
-  chartColumn: {
-    width: "50%",
-    height: 220,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  infoColumn: {
-    width: "50%",
-    paddingLeft: 10,
-    justifyContent: "center",
-  },
-  manualLegendContainer: {
-    padding: 10,
-  },
-  legendItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  legendDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    marginRight: 8,
-  },
-  legendText: {
-    fontSize: 14,
-    color: NEW_COLORS.darkText,
-    fontWeight: "600",
-  },
-  infoCard: {
-    width: "100%",
-    backgroundColor: NEW_COLORS.backgroundLight,
-    borderRadius: 10,
-    padding: 15,
-    marginTop: 20,
-    borderLeftWidth: 5,
-    borderLeftColor: NEW_COLORS.primaryGreen,
-  },
-  infoTitle: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: NEW_COLORS.darkText,
-    marginBottom: 5,
-  },
-  description: {
-    fontSize: 14,
-    color: NEW_COLORS.lightText,
-    lineHeight: 20,
   },
   chartContainer: {
     alignItems: "center",

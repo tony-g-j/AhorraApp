@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import InicioSesionScreen from "../screens/InicioSesionScreen";
 import TabsNav from "./TabsNav";
-import React, {useState} from 'react';
 import { View, ActivityIndicator } from 'react-native';
 
 const Stack = createNativeStackNavigator();
