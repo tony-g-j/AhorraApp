@@ -7,6 +7,11 @@ export class PresupuestoController {
   }
 
   async obtenerPresupuestos(usuarioId, mes, anio) {
+    
+    if (!usuarioId || !mes || !anio) {
+    console.warn("⚠️ obtenerPresupuestos abortado: Faltan datos", { usuarioId, mes, anio });
+    return [];
+  }
     try {
       const data = await DatabaseService.getPresupuestos(usuarioId, mes, anio);
 
@@ -20,7 +25,8 @@ export class PresupuestoController {
             p.monto_actual,
             p.mes,
             p.anio,
-            p.categoria_nombre
+            p.categoria_nombre,
+            p.categoria_tipo
           )
       );
     } catch (error) {
@@ -60,12 +66,40 @@ export class PresupuestoController {
     }
   }
 
+  async actualizarPresupuesto(presupuestoId, nuevoMontoLimite) {
+    try {
+      if (!nuevoMontoLimite || nuevoMontoLimite < 0)
+        throw new Error("Monto inválido");
+
+      await DatabaseService.updatePresupuestoLimite(
+        presupuestoId,
+        parseFloat(nuevoMontoLimite)
+      );
+
+      this.notifyListeners();
+    } catch (error) {
+      console.error("Error actualizando presupuesto:", error);
+      throw error;
+    }
+  }
+
+  async eliminarPresupuesto(id) {
+    try {
+      await DatabaseService.deletePresupuesto(id);
+      this.notifyListeners();
+    } catch (error) {
+      throw error;
+    }
+  }
+
   addListener(callback) {
     this.listeners.push(callback);
   }
+
   removeListeners(callback) {
     this.listeners = this.listeners.filter((l) => l !== callback);
   }
+
   notifyListeners() {
     this.listeners.forEach((callback) => callback());
   }

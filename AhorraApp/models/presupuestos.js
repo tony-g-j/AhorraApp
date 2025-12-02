@@ -1,5 +1,5 @@
 export default class Presupuesto {
-    constructor(id, usuarioId, categoriaId, montoLimite, montoActual, mes, anio, nombreCategoria = null) {
+    constructor(id, usuarioId, categoriaId, montoLimite, montoActual, mes, anio, nombreCategoria = null, tipoCategoria) {
         this.id = id;
         this.usuarioId = usuarioId;
         this.categoriaId = categoriaId;
@@ -8,6 +8,7 @@ export default class Presupuesto {
         this.mes = mes;
         this.anio = anio;
         this.nombreCategoria = nombreCategoria;
+        this.tipoCategoria = tipoCategoria;
     }
 
     static validar(montoLimite, mes, anio) {
