@@ -1,323 +1,393 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TextInput, Button, Image, ScrollView, Switch, ActivityIndicator, Alert, TouchableOpacity } from 'react-native';
-import Logo from '../assets/logo.png'; 
+import React, { useEffect, useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  TextInput,
+  Button,
+  ScrollView,
+  Alert,
+  TouchableOpacity,
+  ActivityIndicator,
+  Image
+} from "react-native";
+import { UsuarioController } from "../controllers/usuarioController";
 
-export default function InicioSesionScreen({ onLoginSuccess, onRegisterSuccess, onRecoverAttempt, users }) {
-  const [pantalla, setPantalla] = useState('splash');
-  const [loading, setLoading] = useState(true);
+const usuarioController = new UsuarioController();
+
+const SplashScreen = () => (
+  <View style={styles.splashBg}>
+    <Image
+      source={require('../assets/logo.png')}
+      style={styles.logo}
+    />
+    <Text style={styles.logoText}>Ahorra+ App</Text>
+    <ActivityIndicator size="large" color="#fff" style={{ marginTop: 20 }} />
+  </View>
+);
+
+const LoginScreen = ({ onRegister, onRecover, onLoginSuccess }) => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  const handleLogin = async () => {
+    if (!email || !password) {
+      Alert.alert("Atención", "Por favor ingresa correo y contraseña");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const usuario = await usuarioController.login(email.trim(), password);
+      onLoginSuccess(usuario);
+    } catch (error) {
+      Alert.alert("Error de Acceso", error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <View style={styles.formContainer}>
+      <View style={styles.headerContainer}>
+        <Image
+          source={require('../assets/logo.png')}
+          style={styles.logo}
+        />
+        <Text style={styles.title}>Bienvenido de nuevo</Text>
+      </View>
+
+      <TextInput
+        style={styles.input}
+        placeholder="Correo electrónico"
+        placeholderTextColor="#999"
+        keyboardType="email-address"
+        autoCapitalize="none"
+        value={email}
+        onChangeText={setEmail}
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Contraseña"
+        placeholderTextColor="#999"
+        secureTextEntry
+        value={password}
+        onChangeText={setPassword}
+      />
+
+      <TouchableOpacity onPress={onRecover} style={{ alignSelf: 'center', marginBottom: 20 }}>
+        <Text style={{ color: "#00796b", fontSize: 14 }}>¿Olvidaste tu contraseña?</Text>
+      </TouchableOpacity>
+
+      <View style={styles.btnWrapper}>
+        <Button
+          title={loading ? "Verificando..." : "Iniciar Sesión"}
+          color="#009688"
+          onPress={handleLogin}
+          disabled={loading}
+        />
+      </View>
+
+      <TouchableOpacity onPress={onRegister} style={{ marginTop: 20 }}>
+        <Text style={styles.linkText}>
+          ¿No tienes cuenta? <Text style={{ fontWeight: "bold" }}>Regístrate aquí</Text>
+        </Text>
+      </TouchableOpacity>
+    </View>
+  );
+};
+
+const RegisterScreen = ({ onLogin }) => {
+  const [nombre, setNombre] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [telefono, setTelefono] = useState("");
+  const [palabraSecreta, setPalabraSecreta] = useState(""); 
+  const [loading, setLoading] = useState(false);
+
+  const handleRegister = async () => {
+    if (!nombre || !email || !password || !palabraSecreta) {
+      Alert.alert("Error", "Por favor completa los campos obligatorios (*)");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await usuarioController.crearUsuario(
+        nombre,
+        email,
+        password,
+        telefono,
+        palabraSecreta
+      );
+      Alert.alert("¡Éxito!", "Cuenta creada correctamente. Por favor inicia sesión.");
+      onLogin();
+    } catch (error) {
+      Alert.alert("Error al registrar", error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <ScrollView contentContainerStyle={styles.scrollContent}>
+      <View style={styles.headerContainer}>
+        <Image
+          source={require('../assets/logo.png')}
+          style={styles.logo}
+        />
+        <Text style={styles.title}>Crear Cuenta</Text>
+      </View>
+
+      <TextInput
+        style={styles.input}
+        placeholder="Nombre completo *"
+        placeholderTextColor="#999"
+        value={nombre}
+        onChangeText={setNombre}
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Correo electrónico *"
+        placeholderTextColor="#999"
+        keyboardType="email-address"
+        autoCapitalize="none"
+        value={email}
+        onChangeText={setEmail}
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Teléfono (Opcional)"
+        placeholderTextColor="#999"
+        keyboardType="phone-pad"
+        value={telefono}
+        onChangeText={setTelefono}
+      />
+
+      <View style={styles.separator} />
+      
+      <Text style={styles.label}>Seguridad:</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Contraseña *"
+        placeholderTextColor="#999"
+        secureTextEntry
+        value={password}
+        onChangeText={setPassword}
+      />
+      
+      <Text style={styles.helperText}>Pregunta de seguridad (Ej. Nombre de tu primera mascota):</Text>
+      <TextInput
+        style={styles.input}
+        placeholder="Palabra Clave Secreta *"
+        placeholderTextColor="#999"
+        value={palabraSecreta}
+        onChangeText={setPalabraSecreta}
+      />
+
+      <View style={styles.btnWrapper}>
+        <Button
+          title={loading ? "Creando..." : "Registrarse"}
+          color="#009688"
+          onPress={handleRegister}
+          disabled={loading}
+        />
+      </View>
+
+      <TouchableOpacity onPress={onLogin} style={{ marginTop: 20 }}>
+        <Text style={styles.linkText}>
+          ¿Ya tienes cuenta? Inicia Sesión
+        </Text>
+      </TouchableOpacity>
+    </ScrollView>
+  );
+};
+
+const ForgotPasswordScreen = ({ onLogin }) => {
+    const [email, setEmail] = useState("");
+    const [palabraSecreta, setPalabraSecreta] = useState("");
+    const [nuevaPassword, setNuevaPassword] = useState("");
+    const [loading, setLoading] = useState(false);
+
+    const handleRecover = async () => {
+        if(!email || !palabraSecreta || !nuevaPassword) {
+            Alert.alert("Error", "Todos los campos son obligatorios.");
+            return;
+        }
+        setLoading(true);
+        try {
+            await usuarioController.restablecerContrasena(email, palabraSecreta, nuevaPassword);
+            Alert.alert("Éxito", "Tu contraseña ha sido restablecida. Inicia sesión con la nueva clave.");
+            onLogin();
+        } catch (error) {
+            Alert.alert("Error", error.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+            <View style={styles.headerContainer}>
+                <Text style={styles.title}>Recuperar Contraseña</Text>
+                <Text style={{textAlign:'center', color: '#666', marginTop: 10}}>
+                    Ingresa tu correo y la palabra clave que definiste al registrarte.
+                </Text>
+            </View>
+
+            <TextInput 
+                style={styles.input} 
+                placeholder="Correo electrónico" 
+                placeholderTextColor="#999" 
+                keyboardType="email-address" 
+                autoCapitalize="none" 
+                value={email} 
+                onChangeText={setEmail} 
+            />
+            <TextInput 
+                style={styles.input} 
+                placeholder="Palabra Clave Secreta" 
+                placeholderTextColor="#999" 
+                value={palabraSecreta} 
+                onChangeText={setPalabraSecreta} 
+            />
+            <TextInput 
+                style={styles.input} 
+                placeholder="Nueva Contraseña" 
+                placeholderTextColor="#999" 
+                secureTextEntry 
+                value={nuevaPassword} 
+                onChangeText={setNuevaPassword} 
+            />
+
+            <View style={styles.btnWrapper}>
+                <Button 
+                    title={loading ? "Procesando..." : "Restablecer Contraseña"} 
+                    color="#FF9800"
+                    onPress={handleRecover} 
+                    disabled={loading} 
+                />
+            </View>
+
+            <TouchableOpacity onPress={onLogin} style={{ marginTop: 20 }}>
+                <Text style={styles.linkText}>Volver al Inicio de Sesión</Text>
+            </TouchableOpacity>
+        </ScrollView>
+    );
+};
+
+export default function InicioSesionScreen({ onLoginSuccess }) {
+  const [pantalla, setPantalla] = useState("splash");
 
   useEffect(() => {
-    setTimeout(() => {
-      setPantalla('login');
-      setLoading(false);
-    }, 2000);
+    const init = async () => {
+      await usuarioController.initialize();
+      setTimeout(() => setPantalla("login"), 2000);
+    };
+    init();
   }, []);
 
   return (
-    <View style={styles.appContainer}>
-      {pantalla === 'splash' && <SplashScreen />}
-      {pantalla === 'login' && 
-      <LoginScreen
-       onRegister={() => setPantalla('register')} 
-       onForgot={() => setPantalla('forgot')}
-       onLoginAttempt={onLoginSuccess}
-       users={users}
-       />}
-
-      {pantalla === 'register' && 
-      <RegisterScreen 
-        onLogin={() => setPantalla('login')} 
-        onRegisterAttempt={onRegisterSuccess}
-        users={users}
-      />}
+    <View style={styles.container}>
+      {pantalla === "splash" && <SplashScreen />}
       
-      {pantalla === 'forgot' && (
-      <ForgotPasswordScreen 
-        onBack={() => setPantalla('login')}
-        onRecoverAttempt={onRecoverAttempt}
-      /> )}
-    </View>
-  );
-}
-
-function SplashScreen() {
-  return (
-    <View style={styles.splashBg}>
-      <Image
-        source={Logo}
-        style={styles.logoSplash}
-      />
-      <Text style={styles.title}>Ahorra+ App</Text>
-      <ActivityIndicator size="large" color="#fff" style={{ marginTop: 20 }} />
-    </View>
-  );
-}
-
-function LoginScreen({ onRegister, onForgot, onLoginAttempt, users }) {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-
-  const validarCorreo = (correo) => /^[\w.%+-]+@[\w.-]+\.[A-Za-z]{2,}$/.test(correo);
-
-  const handleLogin = () => {
-    if (!email.trim() || !password) {
-      Alert.alert('Campos vacíos', 'Por favor completa todos los campos');
-      return;
-    }
-    if (!validarCorreo(email)) {
-      Alert.alert('Correo inválido', 'Ingresa un correo con formato válido');
-      return;
-    }
-    
-    const usuario = users.find((u) => u.email === email && u.password === password);
-    
-    if (usuario) {
-      Alert.alert('Bienvenido', `Inicio de sesión exitoso como ${usuario.name}`);
-      onLoginAttempt(usuario.id);
-    } else {
-      Alert.alert('Error', 'Correo o contraseña incorrectos');
-    }
-  };
-
-  return (
-    <View style={styles.bg}>
-      <ScrollView contentContainerStyle={styles.centerContent}>
-        <Image
-          source={Logo}
-          style={styles.logo}
+      {pantalla === "login" && (
+        <LoginScreen
+          onRegister={() => setPantalla("register")}
+          onRecover={() => setPantalla("recover")}
+          onLoginSuccess={onLoginSuccess}
         />
-        <Text style={styles.title}>Ahorra+ App</Text>
+      )}
+      
+      {pantalla === "register" && (
+        <RegisterScreen onLogin={() => setPantalla("login")} />
+      )}
 
-        <TextInput
-          style={styles.input}
-          placeholder="Correo Electrónico"
-          placeholderTextColor="#999"
-          keyboardType="email-address"
-          value={email}
-          onChangeText={setEmail}
-        />
-
-        <TextInput
-          style={styles.input}
-          placeholder="Contraseña"
-          placeholderTextColor="#999"
-          secureTextEntry
-          value={password}
-          onChangeText={setPassword}
-        />
-
-        <View style={styles.btn}>
-          <Button title="Iniciar Sesión" onPress={handleLogin} />
-        </View>
-
-        <Text style={{ color: '#0d9df0ff', marginTop: 10, textDecorationLine: 'underline' }}
-           onPress={onForgot}
-        >
-           Olvidé mi contraseña 
-        </Text>
-
-        <View style={{ marginTop: 20 }}>
-          <Button title="Ir a Registro" onPress={onRegister} />
-        </View>
-      </ScrollView>
-    </View>
-  );
-}
-
-function RegisterScreen({ onLogin, onRegisterAttempt, users }) {
-  const [nombre, setNombre] = useState('');
-  const [correo, setCorreo] = useState('');
-  const [password, setPassword] = useState('');
-  const [aceptado, setAceptado] = useState(false);
-
-  const validarCorreo = (correo) => /^[\w.%+-]+@[\w.-]+\.[A-Za-z]{2,}$/.test(correo);
-
-  const handleRegister = () => {
-    if (!nombre.trim() || !correo.trim() || !password) {
-      Alert.alert('Campos vacíos', 'Completa todos los campos');
-      return;
-    }
-    if (!validarCorreo(correo)) {
-      Alert.alert('Correo inválido', 'Formato incorrecto');
-      return;
-    }
-    if (users.some(u => u.email === correo)) {
-        Alert.alert('Error', 'Este correo ya está registrado.');
-        return;
-    }
-    if (password.length < 3) {
-      Alert.alert('Contraseña débil', 'Debe tener al menos 3 caracteres');
-      return;
-    }
-    if (!aceptado) {
-      Alert.alert('Términos', 'Debes aceptar los términos y condiciones');
-      return;
-    }
-    
-    const newUser = {
-        id: Date.now().toString(),
-        name: nombre,
-        email: correo,
-        password: password,
-    };
-    
-    onRegisterAttempt(newUser);
-    Alert.alert('Registro completo', 'Usuario creado correctamente');
-    onLogin();
-  };
-
-  return (
-    <View style={styles.bg}>
-      <ScrollView contentContainerStyle={styles.centerContent}>
-        <Image
-          source={Logo}
-          style={styles.logo}
-        />
-        <Text style={styles.title}>Registro</Text>
-
-        <TextInput
-          style={styles.input}
-          placeholder="Nombre completo"
-          placeholderTextColor="#999"
-          value={nombre}
-          onChangeText={setNombre}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Correo Electrónico"
-          placeholderTextColor="#999"
-          value={correo}
-          onChangeText={setCorreo}
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Contraseña"
-          placeholderTextColor="#999"
-          secureTextEntry
-          value={password}
-          onChangeText={setPassword}
-        />
-
-        <View style={styles.switchRow}>
-          <Switch value={aceptado} onValueChange={setAceptado} />
-          <Text style={{ marginLeft: 8 }}>Acepto términos y condiciones</Text>
-        </View>
-
-        <View style={styles.btn}>
-          <Button title="Registrar" onPress={handleRegister} />
-        </View>
-
-        <View style={{ marginTop: 15 }}>
-          <Button title="Volver a inicio de sesión" onPress={onLogin} />
-        </View>
-      </ScrollView>
-    </View>
-  );
-}
-
-function ForgotPasswordScreen({ onBack, onRecoverAttempt }) {
-  const [correo, setCorreo] = useState('');
-
-  const validarCorreo = (correo) => /^[\w.%+-]+@[\w.-]+\.[A-Za-z]{2,}$/.test(correo);
-
-  const handleRecover = () => {
-    if (!correo.trim()) {
-      Alert.alert('Campo vacío', 'Ingresa tu correo');
-      return;
-    }
-    if (!validarCorreo(correo)) {
-      Alert.alert('Correo inválido', 'Formato incorrecto');
-      return;
-    }
-    
-    onRecoverAttempt(correo);
-    Alert.alert('Correo enviado', 'Revisa tu correo para restablecer la contraseña');
-    onBack();
-  };
-
-  return (
-    <View style={styles.bg}>
-      <ScrollView contentContainerStyle={styles.centerContent}>
-        <Image source={Logo} style={styles.logo} />
-        <Text style={styles.title}>Recuperar contraseña</Text>
-
-        <TextInput
-          style={styles.input}
-          placeholder="Correo electrónico"
-          placeholderTextColor="#999"
-          keyboardType="email-address"
-          value={correo}
-          onChangeText={setCorreo}
-        />
-
-        <View style={styles.btn}>
-          <Button title="Enviar" onPress={handleRecover} />
-        </View>
-
-        <View style={{ marginTop: 15 }}>
-          <Button title="Volver" onPress={onBack} />
-        </View>
-      </ScrollView>
+      {pantalla === "recover" && (
+        <ForgotPasswordScreen onLogin={() => setPantalla("login")} />
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  appContainer: {
+  container: {
     flex: 1,
-    backgroundColor: '#bff0ea',
-  },
-  bg: {
-    flex: 1,
-    backgroundColor: '#bff0ea',
+    backgroundColor: "#bff0ea",
   },
   splashBg: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#70cfc1',
+    justifyContent: "center",
+    alignItems: "center",
   },
-  logoSplash: {
-    width: 300,
-    height: 300,
+  logo:{
+    height:250,
+    width:250
+  },
+  logoText: {
+    fontSize: 32,
+    fontWeight: "bold",
+    color: "#30472eff",
+  },
+  formContainer: {
+    flex: 1,
+    justifyContent: "center",
+    padding: 30,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: "center",
+    padding: 30,
+  },
+  headerContainer: {
+    alignItems: "center",
+    marginBottom: 40,
+  },
+  emojiLogo: {
+    fontSize: 60,
     marginBottom: 10,
-  },
-  logo: {
-    width: 300,
-    height: 300,
-    marginBottom: 15,
-    resizeMode: 'contain',
   },
   title: {
     fontSize: 26,
-    fontWeight: '700',
-    color: '#0b3d3a',
-    marginBottom: 10,
-  },
-  centerContent: {
-    flexGrow: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 40,
+    fontWeight: "bold",
+    color: "#0b3d3a",
+    textAlign: "center",
   },
   input: {
-    width: '85%',
-    backgroundColor: '#fff',
-    paddingVertical: 10,
-    paddingHorizontal: 15,
-    borderRadius: 25,
-    marginVertical: 8,
-    elevation: 2,
+    backgroundColor: "#fff",
+    marginBottom: 15,
+    padding: 15,
+    borderRadius: 10,
+    fontSize: 16,
+    borderWidth: 1,
+    borderColor: "#e0e0e0",
+    color: "#333",
   },
-  btn: {
-    width: '85%',
+  btnWrapper: {
     marginTop: 10,
-    borderRadius: 25,
-    overflow: 'hidden',
+    borderRadius: 10,
+    overflow: "hidden",
   },
-  switchRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  linkText: {
+    color: "#00796b",
+    textAlign: "center",
+    fontSize: 15,
+  },
+  label: {
+    fontWeight: 'bold',
+    color: '#0b3d3a',
+    marginBottom: 5,
     marginTop: 10,
   },
+  helperText: {
+    fontSize: 12,
+    color: '#666',
+    marginBottom: 5,
+  },
+  separator: {
+    height: 1,
+    backgroundColor: '#ccc',
+    marginVertical: 10,
+  }
 });

@@ -75,27 +75,17 @@ class DatabaseService {
       );
     `);
   }
-
+  
   async getUsuarios() {
     return await this.db.getAllAsync(
       "SELECT * FROM usuarios ORDER BY fecha_registro DESC"
     );
   }
 
-  async addUsuario(
-    nombre,
-    email,
-    passwordHash,
-    telefono = null,
-    palabraSecreta
-  ) {
+  async addUsuario(nombre, email, passwordHash, telefono = null, palabraSecreta) {
     const result = await this.db.runAsync(
-      "INSERT INTO usuarios (nombre, email, password_hash, telefono, palabra_secreta) VALUES (?, ?, ?, ?, ?)",
-      nombre,
-      email,
-      passwordHash,
-      telefono,
-      palabraSecreta
+      'INSERT INTO usuarios (nombre, email, password_hash, telefono, palabra_secreta) VALUES (?, ?, ?, ?, ?)',
+      nombre, email, passwordHash, telefono, palabraSecreta
     );
     return { id: result.lastInsertRowId, nombre, email };
   }
@@ -114,6 +104,13 @@ class DatabaseService {
       "UPDATE usuarios SET password_hash = ? WHERE email = ?",
       newPasswordHash,
       email
+    );
+  }
+
+  async updatePassword(email, newPasswordHash) {
+    await this.db.runAsync(
+        'UPDATE usuarios SET password_hash = ? WHERE email = ?',
+        newPasswordHash, email
     );
   }
 
@@ -141,11 +138,8 @@ class DatabaseService {
 
   async updateCategoria(id, nombre, tipo, icono) {
     await this.db.runAsync(
-      "UPDATE categorias SET nombre = ?, tipo = ?, icono = ? WHERE categoria_id = ?",
-      nombre,
-      tipo,
-      icono,
-      id
+      'UPDATE categorias SET nombre = ?, tipo = ?, icono = ? WHERE categoria_id = ?',
+      nombre, tipo, icono, id
     );
   }
 
@@ -299,6 +293,13 @@ class DatabaseService {
       "UPDATE presupuestos SET monto_limite = ? WHERE presupuesto_id = ?",
       montoLimite,
       id
+    );
+  }
+
+  async updatePresupuesto(id, montoLimite) {
+    await this.db.runAsync(
+      'UPDATE presupuestos SET monto_limite = ? WHERE presupuesto_id = ?',
+      montoLimite, id
     );
   }
 
