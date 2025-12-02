@@ -6,7 +6,7 @@ export default class Categoria {
         this.tipo = tipo;
     }
 
-    static validar(nombre, tipo){x
+    static validar(nombre, tipo){
         if (!nombre || nombre.trim() === 0) {
             throw new Error('El nombre de la categoria es obligatorio');
         }

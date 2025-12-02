@@ -70,7 +70,7 @@ export class UsuarioController {
             u.password_hash,
             u.telefono,
             u.fecha_registro,
-            u.palabra_secreta // Mapeamos la columna de BD al modelo
+            u.palabra_secreta 
           )
       );
     } catch (error) {

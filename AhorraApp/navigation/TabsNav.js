@@ -1,4 +1,4 @@
-import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import PresupuestosS from '../screens/PresupuestoScreen';
 import RegistroGastosS from '../screens/registroGastosScreen';
 import GraficasS from '../screens/graficasScreen';
@@ -17,31 +17,37 @@ export default function TabsNav({ activeUserId, onLogout }){
         >
             <Tab.Screen 
                 name='Presupuestos' 
-                component={PresupuestosS}
                 options={{
                     tabBarIcon: ({ color, size }) => (
                         <Ionicons name="wallet-outline" size={size} color={color} />
                     ),
                 }}
-            />
+            >
+                {(props) => <PresupuestosS {...props} usuarioId={activeUserId} />}
+            </Tab.Screen>
+
             <Tab.Screen 
                 name='Graficas' 
-                component={GraficasS}
                 options={{
                     tabBarIcon: ({ color, size }) => (
                         <Ionicons name="bar-chart-outline" size={size} color={color} />
                     ),
                 }}
-            />
+            >
+                {(props) => <GraficasS {...props} usuarioId={activeUserId} />}
+            </Tab.Screen>
+
             <Tab.Screen 
                 name='Registro' 
-                component={RegistroGastosS}
                 options={{
                     tabBarIcon: ({ color, size }) => (
                         <Ionicons name="add-circle-outline" size={size} color={color} />
                     ),
                 }}
-            />
+            >
+                {(props) => <RegistroGastosS {...props} usuarioId={activeUserId} />}
+            </Tab.Screen>
+            
         </Tab.Navigator>
     )
 }

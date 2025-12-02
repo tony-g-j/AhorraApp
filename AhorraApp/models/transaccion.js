@@ -1,5 +1,5 @@
 export default class Transaccion {
-    constructor(id, usuarioId, categoriaId, monto, fecha, descripcion, esRecurrente, nombreCategoria = null, iconoCategoria = null) {
+    constructor(id, usuarioId, categoriaId, monto, fecha, descripcion, esRecurrente, nombreCategoria = null, iconoCategoria = null, tipoCategoria = null) {
         this.id = id;
         this.usuarioId = usuarioId;
         this.categoriaId = categoriaId;
@@ -7,8 +7,10 @@ export default class Transaccion {
         this.fecha = fecha;
         this.descripcion = descripcion;
         this.esRecurrente = !!esRecurrente;
+        
         this.nombreCategoria = nombreCategoria;
         this.iconoCategoria = iconoCategoria;
+        this.tipoCategoria = tipoCategoria;
     }
 
     static validar(monto, fecha, categoriaId) {
