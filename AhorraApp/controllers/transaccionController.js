@@ -117,7 +117,7 @@ export class TransaccionController {
         descripcion
       );
 
-      await this._sincronizarPresupuesto(
+      await this.sincronizarPresupuesto(
         transaccionVieja.usuario_id,
         categoriaId,
         fecha

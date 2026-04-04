@@ -12,6 +12,7 @@ import {
   Image
 } from "react-native";
 import { UsuarioController } from "../controllers/usuarioController";
+import { seedDatabase } from '../utils/data';
 
 const usuarioController = new UsuarioController();
 
@@ -47,6 +48,20 @@ const LoginScreen = ({ onRegister, onRecover, onLoginSuccess }) => {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    const cargarDatosSilencioso = async () => {
+      try {
+        console.log("🔄 Verificando datos iniciales...");
+        console.log("✅ Base de datos lista para demo.");
+        seedDatabase();
+      } catch (error) {
+        console.error("Error en sembrado silencioso:", error);
+      }
+    };
+
+    cargarDatosSilencioso();
+  }, []);
 
   return (
     <View style={styles.formContainer}>

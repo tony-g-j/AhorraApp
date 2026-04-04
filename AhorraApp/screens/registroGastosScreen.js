@@ -51,8 +51,11 @@ const nombresMeses = [
   "Dic",
 ];
 
+<<<<<<< Updated upstream
 import { SafeAreaView } from "react-native-safe-area-context";
 
+=======
+>>>>>>> Stashed changes
 const transaccionController = new TransaccionController();
 const categoriaController = new CategoriaController();
 const presupuestoController = new PresupuestoController();
@@ -204,6 +207,7 @@ export default function RegistroGastosScreen({ usuarioId }) {
     }
   };
 
+<<<<<<< Updated upstream
   const handleEliminar = useCallback(() => {
     if (!item) return;
     const { id, tipo } = item;
@@ -226,6 +230,8 @@ export default function RegistroGastosScreen({ usuarioId }) {
     }, 300);
   }, [item]);
 
+=======
+>>>>>>> Stashed changes
   const renderItem = ({ item }) => {
     const fechaObj = new Date(item.fecha);
     const dia = fechaObj.getDate();
@@ -296,6 +302,7 @@ export default function RegistroGastosScreen({ usuarioId }) {
     );
   };
 
+<<<<<<< Updated upstream
       setDescripcion("");
       setMonto("");
       setCatSeleccionada(null);
@@ -306,6 +313,8 @@ export default function RegistroGastosScreen({ usuarioId }) {
     }
   };
 
+=======
+>>>>>>> Stashed changes
   const handleEliminar = async (id) => {
     Alert.alert("Eliminar", "¿Estás seguro?", [
       { text: "Cancelar", style: "cancel" },
@@ -323,6 +332,7 @@ export default function RegistroGastosScreen({ usuarioId }) {
     ]);
   };
 
+<<<<<<< Updated upstream
   const renderItem = ({ item }) => (
     <View style={styles.itemContainer}>
       <View style={styles.row}>
@@ -363,6 +373,8 @@ export default function RegistroGastosScreen({ usuarioId }) {
     </View>
   );
 
+=======
+>>>>>>> Stashed changes
   const renderSelectorCategorias = (
     tipoFiltro,
     seleccionado,

@@ -14,7 +14,6 @@ import {
 import BottomSheet, { BottomSheetScrollView } from "@gorhom/bottom-sheet";
 import MaterialIcons from "react-native-vector-icons/MaterialIcons";
 import {
-  MenuProvider,
   Menu,
   MenuOptions,
   MenuOption,
@@ -283,6 +282,7 @@ export default function PresupuestosScreen({ usuarioId }) {
     try {
       const mes = mesSeleccionado;
       const anio = anioSeleccionado;
+<<<<<<< Updated upstream
 
       if (isEditing) {
         await presupuestoController.actualizarPresupuesto(data.id, data.limit);
@@ -315,6 +315,8 @@ export default function PresupuestosScreen({ usuarioId }) {
       const hoy = new Date();
       const mes = hoy.getMonth() + 1;
       const anio = hoy.getFullYear();
+=======
+>>>>>>> Stashed changes
 
       if (isEditing) {
         await presupuestoController.actualizarPresupuesto(data.id, data.limit);
@@ -370,7 +372,6 @@ export default function PresupuestosScreen({ usuarioId }) {
       style={{ flex: 1, backgroundColor: COLORS.background }}
       edges={["top", "left", "right"]}
     >
-      <MenuProvider>
         <View style={styles.container}>
           <Text style={styles.header}>💰 Mi Presupuesto Mensual</Text>
 
@@ -582,7 +583,6 @@ export default function PresupuestosScreen({ usuarioId }) {
             snapPoints={snapPointsForm}
           />
         </View>
-      </MenuProvider>
     </SafeAreaView>
   );
 }
